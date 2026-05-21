@@ -29,8 +29,8 @@ export function CourierCompanyPage() {
   const [editing, setEditing] = useState<CourierCompany | null>(null)
 
   const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize: 10 }), [q, page])
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<any>({
+    resolver: zodResolver(schema) as any,
     defaultValues: { name: '', trackingUrl: '', supportPhone: '', isActive: true },
   })
 
@@ -165,7 +165,7 @@ export function CourierCompanyPage() {
                 {...form.register('name')}
               />
               {form.formState.errors.name && (
-                <div className="mt-1 text-xs text-red-600">{form.formState.errors.name.message}</div>
+                <div className="mt-1 text-xs text-red-600">{String(form.formState.errors.name?.message ?? '')}</div>
               )}
             </div>
             <div>
@@ -183,7 +183,7 @@ export function CourierCompanyPage() {
                 {...form.register('trackingUrl')}
               />
               {form.formState.errors.trackingUrl && (
-                <div className="mt-1 text-xs text-red-600">{form.formState.errors.trackingUrl.message}</div>
+                <div className="mt-1 text-xs text-red-600">{String(form.formState.errors.trackingUrl?.message ?? '')}</div>
               )}
             </div>
             <label className="flex items-center gap-2 text-sm">

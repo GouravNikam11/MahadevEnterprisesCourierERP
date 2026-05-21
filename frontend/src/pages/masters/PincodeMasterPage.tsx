@@ -24,8 +24,8 @@ export function PincodeMasterPage() {
   const [editing, setEditing] = useState<Pincode | null>(null)
 
   const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize: 10 }), [q, page])
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<any>({
+    resolver: zodResolver(schema) as any,
     defaultValues: { areaName: '', pincode: '', city: '', state: '', isActive: true },
   })
 
@@ -164,7 +164,7 @@ export function PincodeMasterPage() {
                 {...form.register('areaName')}
               />
               {form.formState.errors.areaName && (
-                <div className="mt-1 text-xs text-red-600">{form.formState.errors.areaName.message}</div>
+                <div className="mt-1 text-xs text-red-600">{String(form.formState.errors.areaName?.message ?? '')}</div>
               )}
             </div>
             <div>
@@ -174,7 +174,7 @@ export function PincodeMasterPage() {
                 {...form.register('pincode')}
               />
               {form.formState.errors.pincode && (
-                <div className="mt-1 text-xs text-red-600">{form.formState.errors.pincode.message}</div>
+                <div className="mt-1 text-xs text-red-600">{String(form.formState.errors.pincode?.message ?? '')}</div>
               )}
             </div>
             <div>

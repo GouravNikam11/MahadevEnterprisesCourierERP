@@ -1,8 +1,10 @@
-import type { RootState } from './store'
+import type { AuthState } from './slices/authSlice'
 
 const KEY = 'mahadev.erp.session.v1'
 
-export function loadPersistedAuth(): Pick<RootState, 'auth'> | undefined {
+export type PersistedRootState = { auth: AuthState }
+
+export function loadPersistedAuth(): Partial<PersistedRootState> | undefined {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return undefined
@@ -14,11 +16,10 @@ export function loadPersistedAuth(): Pick<RootState, 'auth'> | undefined {
   }
 }
 
-export function persistAuth(state: RootState) {
+export function persistAuth(state: PersistedRootState) {
   try {
     localStorage.setItem(KEY, JSON.stringify({ auth: state.auth }))
   } catch {
     // ignore
   }
 }
-

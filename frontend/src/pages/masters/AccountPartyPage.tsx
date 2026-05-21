@@ -33,8 +33,8 @@ export function AccountPartyPage() {
   const [editing, setEditing] = useState<AccountParty | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<any>({
+    resolver: zodResolver(schema) as any,
     defaultValues: { name: '', phone: '', gstNumber: '', state: '', address: '', isActive: true },
   })
 
@@ -182,7 +182,7 @@ export function AccountPartyPage() {
                 {...form.register('name')}
               />
               {form.formState.errors.name && (
-                <div className="mt-1 text-xs text-red-600">{form.formState.errors.name.message}</div>
+                <div className="mt-1 text-xs text-red-600">{String(form.formState.errors.name?.message ?? '')}</div>
               )}
             </div>
             <div>

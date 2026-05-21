@@ -33,8 +33,8 @@ export function AccountBookingPage() {
   const [accountParties, setAccountParties] = useState<LookupItem[]>([])
   const [courierCompanies, setCourierCompanies] = useState<LookupItem[]>([])
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<any>({
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       accountPartyId: '',
       customerName: '',

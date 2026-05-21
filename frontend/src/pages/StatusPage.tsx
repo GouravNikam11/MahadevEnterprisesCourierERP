@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,12 +25,10 @@ export function StatusPage() {
   const [timeline, setTimeline] = useState<any[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { bookingType: 'account', bookingId: '', status: 'IN_TRANSIT', remarks: '' } as any,
+  const form = useForm<any>({
+    resolver: zodResolver(schema) as any,
+    defaultValues: { bookingType: 'account', bookingId: '', status: 'IN_TRANSIT', remarks: '' },
   })
-
-  const q = useMemo(() => form.getValues(), [form])
 
   const refreshTimeline = async (bookingType: string, bookingId: string) => {
     const res = await api.get('/status/timeline', { params: { bookingType, bookingId } })

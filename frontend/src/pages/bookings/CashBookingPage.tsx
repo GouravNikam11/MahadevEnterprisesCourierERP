@@ -39,8 +39,8 @@ export function CashBookingPage() {
   const [pincodes, setPincodes] = useState<PincodeLookupItem[]>([])
   const [pincodeSearch, setPincodeSearch] = useState('')
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<any>({
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       fromName: '',
       toName: '',

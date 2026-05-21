@@ -1,19 +1,46 @@
+// {
+//   "compilerOptions": {
+//     "target": "ES2022",
+//     "lib": ["ES2022"],
+//     "module": "NodeNext",
+//     "moduleResolution": "NodeNext",
+//     "outDir": "dist",
+//     "rootDir": "src",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "skipLibCheck": true,
+//     "resolveJsonModule": true,
+//     "types": ["node"]
+//   },
+//   "include": ["src/**/*.ts", "prisma.config.ts"],
+//   "exclude": ["node_modules", "dist"]
+// }
+
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "rootDir": "src",
+    "outDir": "./dist",
+    "rootDir": "./src",
+
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "prisma.config.ts"],
-  "exclude": ["node_modules", "dist"]
-}
 
+  "include": ["src/**/*"],
+
+  "exclude": [
+    "node_modules",
+    "dist",
+    "prisma.config.ts"
+  ]
+}

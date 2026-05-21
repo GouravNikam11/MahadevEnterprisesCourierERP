@@ -1,0 +1,275 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Align with database/schema.sql enum type names
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("user_status")
+}
+
+enum BookingStatus {
+  BOOKED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  NOT_DELIVERED
+  RETURNED
+  CANCELLED
+
+  @@map("booking_status")
+}
+
+// --- Tables match database/schema.sql (snake_case) ---
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  users User[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([name])
+  @@map("roles")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  name         String?
+  phone        String?
+  passwordHash String     @map("password_hash")
+  status       UserStatus @default(ACTIVE)
+
+  roleId String @map("role_id")
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  refreshTokens        RefreshToken[]
+  passwordResetTokens  PasswordResetToken[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([roleId])
+  @@index([email])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String @id @default(uuid())
+  userId    String @map("user_id")
+  user      User   @relation(fields: [userId], references: [id])
+
+  tokenHash String    @map("token_hash")
+  revokedAt DateTime? @map("revoked_at")
+  expiresAt DateTime  @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String @id @default(uuid())
+  userId    String @map("user_id")
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([tokenHash])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model AccountParty {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  phone     String?
+  gstNumber String?  @map("gst_number")
+  state     String?
+  rate      Decimal?
+  isActive  Boolean  @default(true) @map("is_active")
+
+  accountBookings AccountBooking[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([name])
+  @@index([phone])
+  @@index([gstNumber])
+  @@map("account_parties")
+}
+
+model CourierCompany {
+  id           String  @id @default(uuid())
+  name         String
+  trackingUrl  String? @map("tracking_url")
+  supportPhone String? @map("support_phone")
+  isActive     Boolean @default(true) @map("is_active")
+
+  accountBookings AccountBooking[]
+  cashBookings    CashBooking[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([name])
+  @@unique([name])
+  @@map("courier_companies")
+}
+
+model Pincode {
+  id       String  @id @default(uuid())
+  areaName String  @map("area_name")
+  pincode  String
+  city     String?
+  state    String?
+  isActive Boolean @default(true) @map("is_active")
+
+  cashBookings CashBooking[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([pincode])
+  @@index([areaName])
+  @@unique([pincode, areaName])
+  @@map("pincodes")
+}
+
+model AccountBooking {
+  id               String   @id @default(uuid())
+  bookingDate      DateTime @default(now()) @map("booking_date")
+  accountPartyId   String   @map("account_party_id")
+  accountParty     AccountParty @relation(fields: [accountPartyId], references: [id])
+
+  customerName     String  @map("customer_name")
+  customerPhone    String? @map("customer_phone")
+
+  courierCompanyId String         @map("courier_company_id")
+  courierCompany   CourierCompany @relation(fields: [courierCompanyId], references: [id])
+
+  courierNumber String          @map("courier_number")
+  parcelType    String?         @map("parcel_type")
+  destination   String?
+  weight        Decimal?
+  charges       Decimal?
+  status        BookingStatus   @default(BOOKED)
+  remarks       String?
+
+  statusLogs CourierStatusLog[]
+  smsLogs    SmsLog[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([bookingDate])
+  @@index([courierNumber])
+  @@index([status])
+  @@map("account_bookings")
+}
+
+model CashBooking {
+  id          String   @id @default(uuid())
+  bookingDate DateTime @default(now()) @map("booking_date")
+
+  fromName     String  @map("from_name")
+  toName       String  @map("to_name")
+  mobileNumber String? @map("mobile_number")
+
+  location String?
+  pincodeId String? @map("pincode_id")
+  pincode   Pincode? @relation(fields: [pincodeId], references: [id])
+
+  courierCompanyId String         @map("courier_company_id")
+  courierCompany   CourierCompany @relation(fields: [courierCompanyId], references: [id])
+
+  courierNumber String          @map("courier_number")
+  weight        Decimal?
+  amount        Decimal?
+  status        BookingStatus   @default(BOOKED)
+  remarks       String?
+
+  statusLogs CourierStatusLog[]
+  smsLogs    SmsLog[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([bookingDate])
+  @@index([courierNumber])
+  @@index([status])
+  @@map("cash_bookings")
+}
+
+model CourierStatusLog {
+  id String @id @default(uuid())
+
+  accountBookingId String?         @map("account_booking_id")
+  accountBooking   AccountBooking? @relation(fields: [accountBookingId], references: [id])
+
+  cashBookingId String?      @map("cash_booking_id")
+  cashBooking   CashBooking? @relation(fields: [cashBookingId], references: [id])
+
+  status     BookingStatus
+  remarks    String?
+  occurredAt DateTime @default(now()) @map("occurred_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([occurredAt])
+  @@index([status])
+  @@map("courier_status_logs")
+}
+
+model SmsLog {
+  id       String @id @default(uuid())
+  provider String
+  toPhone  String @map("to_phone")
+  template String?
+  message  String
+  status   String
+  providerMsgId String? @map("provider_msg_id")
+
+  accountBookingId String?         @map("account_booking_id")
+  accountBooking   AccountBooking? @relation(fields: [accountBookingId], references: [id])
+  cashBookingId    String?         @map("cash_booking_id")
+  cashBooking      CashBooking?    @relation(fields: [cashBookingId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([toPhone])
+  @@index([createdAt])
+  @@map("sms_logs")
+}

@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import { prisma } from '../config/prisma'
 import { fail, ok } from '../utils/response'
+import { routeParam } from '../utils/routeParams'
 import { pagedQuerySchema, pincodeCreateSchema, pincodeUpdateSchema } from '../validators/masters'
 
 export async function listPincodes(req: Request, res: Response) {
@@ -48,7 +49,7 @@ export async function createPincode(req: Request, res: Response) {
 }
 
 export async function updatePincode(req: Request, res: Response) {
-  const id = req.params.id
+  const id = routeParam(req.params.id)
   const parsed = pincodeUpdateSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json(fail('Validation failed', parsed.error.flatten()))
 
@@ -63,7 +64,7 @@ export async function updatePincode(req: Request, res: Response) {
 }
 
 export async function deletePincode(req: Request, res: Response) {
-  const id = req.params.id
+  const id = routeParam(req.params.id)
   const existing = await prisma.pincode.findFirst({ where: { id, deletedAt: null } })
   if (!existing) return res.status(404).json(fail('Not found', { code: 'NOT_FOUND' }))
   await prisma.pincode.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })

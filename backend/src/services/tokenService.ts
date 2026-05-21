@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt, { type JwtPayload, type SignOptions } from 'jsonwebtoken'
 import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 import { env } from '../config/env'
@@ -9,12 +9,17 @@ export type AccessTokenClaims = {
   email: string
 }
 
-export function signAccessToken(claims: AccessTokenClaims, expiresIn: string = '15m') {
-  return jwt.sign(claims, env.JWT_SECRET, { expiresIn })
+export function signAccessToken(
+  claims: AccessTokenClaims,
+  expiresIn: SignOptions['expiresIn'] = '15m',
+): string {
+  const options: SignOptions = { expiresIn }
+  return jwt.sign(claims, env.JWT_SECRET, options)
 }
 
-export function verifyAccessToken(token: string) {
-  return jwt.verify(token, env.JWT_SECRET) as AccessTokenClaims
+export function verifyAccessToken(token: string): AccessTokenClaims {
+  const payload = jwt.verify(token, env.JWT_SECRET) as JwtPayload & AccessTokenClaims
+  return { sub: payload.sub, email: payload.email, role: payload.role }
 }
 
 export function generateRefreshToken() {

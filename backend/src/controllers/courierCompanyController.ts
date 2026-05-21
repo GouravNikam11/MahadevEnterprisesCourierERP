@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import { prisma } from '../config/prisma'
 import { fail, ok } from '../utils/response'
+import { routeParam } from '../utils/routeParams'
 import { courierCompanyCreateSchema, courierCompanyUpdateSchema, pagedQuerySchema } from '../validators/masters'
 
 export async function listCourierCompanies(req: Request, res: Response) {
@@ -40,7 +41,7 @@ export async function createCourierCompany(req: Request, res: Response) {
 }
 
 export async function updateCourierCompany(req: Request, res: Response) {
-  const id = req.params.id
+  const id = routeParam(req.params.id)
   const parsed = courierCompanyUpdateSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json(fail('Validation failed', parsed.error.flatten()))
 
@@ -56,7 +57,7 @@ export async function updateCourierCompany(req: Request, res: Response) {
 }
 
 export async function deleteCourierCompany(req: Request, res: Response) {
-  const id = req.params.id
+  const id = routeParam(req.params.id)
   const existing = await prisma.courierCompany.findFirst({ where: { id, deletedAt: null } })
   if (!existing) return res.status(404).json(fail('Not found', { code: 'NOT_FOUND' }))
   await prisma.courierCompany.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })

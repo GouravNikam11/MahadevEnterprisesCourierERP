@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import { prisma } from '../config/prisma'
 import { fail, ok } from '../utils/response'
+import { routeParam } from '../utils/routeParams'
 import {
   accountPartyCreateSchema,
   accountPartyListQuerySchema,
@@ -45,7 +46,7 @@ export async function listAccountParties(req: Request, res: Response) {
 }
 
 export async function getAccountParty(req: Request, res: Response) {
-  const id = req.params.id
+  const id = routeParam(req.params.id)
   const item = await prisma.accountParty.findFirst({ where: { id, deletedAt: null } })
   if (!item) return res.status(404).json(fail('Not found', { code: 'NOT_FOUND' }))
   return res.json(ok('Success', item))
@@ -61,7 +62,7 @@ export async function createAccountParty(req: Request, res: Response) {
 }
 
 export async function updateAccountParty(req: Request, res: Response) {
-  const id = req.params.id
+  const id = routeParam(req.params.id)
   const parsed = accountPartyUpdateSchema.safeParse(req.body)
   if (!parsed.success) {
     return res.status(400).json(fail('Validation failed', parsed.error.flatten()))
@@ -73,7 +74,7 @@ export async function updateAccountParty(req: Request, res: Response) {
 }
 
 export async function deleteAccountParty(req: Request, res: Response) {
-  const id = req.params.id
+  const id = routeParam(req.params.id)
   const existing = await prisma.accountParty.findFirst({ where: { id, deletedAt: null } })
   if (!existing) return res.status(404).json(fail('Not found', { code: 'NOT_FOUND' }))
   await prisma.accountParty.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })

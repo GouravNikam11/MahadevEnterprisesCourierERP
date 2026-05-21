@@ -1,12 +1,10 @@
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import dotenv from 'dotenv'
 import bcrypt from 'bcrypt'
-import { PrismaClient } from '../generated/prisma/client'
+import { PrismaClient } from '../generated/prisma'
 
 // tsx prisma/seed.ts does not load .env automatically; Prisma needs DATABASE_URL in process.env.
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: path.join(__dirname, '..', '.env') })
+dotenv.config({ path: path.join(process.cwd(), '.env') })
 
 const prisma = new PrismaClient()
 
@@ -57,4 +55,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
-

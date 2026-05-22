@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { getPlatformSettings } from '../services/platformApi'
+import { PageHeader } from '../components/layout/PageHeader'
+import { ThemeToggle } from '../components/common/ThemeToggle'
+import { alertErrorClass, alertInfoClass, pageClass } from '../components/layout/uiClasses'
 
 export function SettingsPage() {
   const [message, setMessage] = useState<string | null>(null)
@@ -20,17 +23,22 @@ export function SettingsPage() {
   }, [])
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="text-2xl font-semibold">Settings</div>
-        <p className="mt-1 text-sm text-slate-500">
-          Theme, integrations, and org-wide configuration are restricted to Super Admin. Regular admins manage day-to-day users and operations from other menus.
-        </p>
+    <div className={pageClass}>
+      <PageHeader
+        title="Settings"
+        subtitle="Theme, integrations, and org-wide configuration are restricted to Super Admin. Regular admins manage day-to-day users and operations from other menus."
+      />
+
+      <div className="erp-card flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="text-sm font-medium text-erp-text">Appearance</div>
+          <p className="mt-0.5 text-sm text-erp-muted">Choose light, dark, or match your system preference.</p>
+        </div>
+        <ThemeToggle variant="menu" />
       </div>
-      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>}
-      {!error && message && (
-        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">{message}</div>
-      )}
+
+      {error && <div className={alertErrorClass}>{error}</div>}
+      {!error && message && <div className={alertInfoClass}>{message}</div>}
     </div>
   )
 }

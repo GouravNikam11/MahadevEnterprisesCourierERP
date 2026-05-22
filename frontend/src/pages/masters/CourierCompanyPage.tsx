@@ -9,6 +9,29 @@ import {
   updateCourierCompany,
   type CourierCompany,
 } from '../../services/mastersApi'
+import { DataTable } from '../../components/layout/DataTable'
+import { PageHeader } from '../../components/layout/PageHeader'
+import { PaginationBar } from '../../components/layout/PaginationBar'
+import {
+  alertErrorClass,
+  badgeActiveClass,
+  badgeInactiveClass,
+  btnDangerClass,
+  btnPrimaryClass,
+  btnSecondaryClass,
+  btnTableActionClass,
+  cardClass,
+  emptyCellClass,
+  mutedTextClass,
+  textSecondaryClass,
+  formActionsClass,
+  formGridClass,
+  formSpanFullClass,
+  inputClass,
+  labelClass,
+  pageClass,
+  toolbarClass,
+} from '../../components/layout/uiClasses'
 import { downloadCsv } from '../../utils/csv'
 
 const schema = z.object({
@@ -104,39 +127,37 @@ export function CourierCompanyPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="text-2xl font-semibold">Courier Company Master</div>
-          <div className="text-sm text-slate-500">Tracking URL templates and company status</div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() =>
-              downloadCsv(
-                `courier-companies-${new Date().toISOString().slice(0, 10)}.csv`,
-                (data?.items ?? []).map((x) => ({
-                  name: x.name,
-                  trackingUrl: x.trackingUrl ?? '',
-                  supportPhone: x.supportPhone ?? '',
-                  isActive: x.isActive,
-                })),
-              )
-            }
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50"
-          >
-            Export CSV
-          </button>
-          <button
-            onClick={() => setShowCreate((v) => !v)}
-            className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
-          >
-            Add Company
-          </button>
-        </div>
-      </div>
+    <div className={pageClass}>
+      <PageHeader
+        title="Courier Company Master"
+        subtitle="Tracking URL templates and company status"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                downloadCsv(
+                  `courier-companies-${new Date().toISOString().slice(0, 10)}.csv`,
+                  (data?.items ?? []).map((x) => ({
+                    name: x.name,
+                    trackingUrl: x.trackingUrl ?? '',
+                    supportPhone: x.supportPhone ?? '',
+                    isActive: x.isActive,
+                  })),
+                )
+              }
+              className={btnSecondaryClass}
+            >
+              Export CSV
+            </button>
+            <button type="button" onClick={() => setShowCreate((v) => !v)} className={btnPrimaryClass}>
+              Add Company
+            </button>
+          </>
+        }
+      />
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className={toolbarClass}>
         <input
           value={q}
           onChange={(e) => {
@@ -144,24 +165,24 @@ export function CourierCompanyPage() {
             setPage(1)
           }}
           placeholder="Search by company name"
-          className="w-full max-w-md rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+          className={`${inputClass} sm:max-w-md`}
         />
-        <div className="text-xs text-slate-500">{loading ? 'Loading…' : ' '}</div>
+        <div className={`text-xs ${mutedTextClass}`}>{loading ? 'Loading…' : ' '}</div>
       </div>
 
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && <div className={alertErrorClass}>{error}</div>}
 
       {showCreate && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className={cardClass}>
           <div className="mb-3 text-sm font-medium">{editing ? 'Edit courier company' : 'Create courier company'}</div>
           <form
-            className="grid grid-cols-1 gap-3 md:grid-cols-2"
+            className={formGridClass}
             onSubmit={form.handleSubmit(editing ? onUpdate : onCreate)}
           >
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">Company name *</label>
+              <label className={labelClass}>Company name *</label>
               <input
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                className={inputClass}
                 {...form.register('name')}
               />
               {form.formState.errors.name && (
@@ -169,17 +190,17 @@ export function CourierCompanyPage() {
               )}
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">Support phone</label>
+              <label className={labelClass}>Support phone</label>
               <input
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                className={inputClass}
                 {...form.register('supportPhone')}
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-medium text-slate-700">Tracking URL template</label>
+            <div className={formSpanFullClass}>
+              <label className={labelClass}>Tracking URL template</label>
               <input
                 placeholder="https://trackingcompany.com/track/{tracking_number}"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                className={inputClass}
                 {...form.register('trackingUrl')}
               />
               {form.formState.errors.trackingUrl && (
@@ -190,12 +211,8 @@ export function CourierCompanyPage() {
               <input type="checkbox" className="h-4 w-4" defaultChecked {...form.register('isActive')} />
               Active
             </label>
-            <div className="md:col-span-2 flex gap-2">
-              <button
-                type="submit"
-                disabled={form.formState.isSubmitting}
-                className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
-              >
+            <div className={formActionsClass}>
+              <button type="submit" disabled={form.formState.isSubmitting} className={btnPrimaryClass}>
                 {form.formState.isSubmitting ? 'Saving…' : 'Save'}
               </button>
               <button
@@ -205,7 +222,7 @@ export function CourierCompanyPage() {
                   setEditing(null)
                   form.reset({ name: '', trackingUrl: '', supportPhone: '', isActive: true })
                 }}
-                className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                className={btnSecondaryClass}
               >
                 Cancel
               </button>
@@ -214,83 +231,55 @@ export function CourierCompanyPage() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-600">
-            <tr>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Tracking URL</th>
-              <th className="px-4 py-3">Support</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+      <DataTable minWidth="680px">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Tracking URL</th>
+            <th>Support</th>
+            <th>Status</th>
+            <th className="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(data?.items ?? []).map((row) => (
+            <tr key={row.id}>
+              <td className="max-w-[12rem] truncate font-medium text-erp-text sm:max-w-none">{row.name}</td>
+              <td className={`max-w-[10rem] truncate sm:max-w-none ${textSecondaryClass}`}>{row.trackingUrl ?? '—'}</td>
+              <td className={textSecondaryClass}>{row.supportPhone ?? '—'}</td>
+              <td>
+                <span className={row.isActive ? badgeActiveClass : badgeInactiveClass}>
+                  {row.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </td>
+              <td className="text-right">
+                <div className="inline-flex flex-wrap justify-end gap-2">
+                  <button type="button" className={btnTableActionClass} onClick={() => startEdit(row)}>
+                    Edit
+                  </button>
+                  <button type="button" className={btnDangerClass} onClick={() => onDelete(row)}>
+                    Delete
+                  </button>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {(data?.items ?? []).map((row) => (
-              <tr key={row.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 font-medium">{row.name}</td>
-                <td className="px-4 py-3 text-slate-600">{row.trackingUrl ?? '—'}</td>
-                <td className="px-4 py-3 text-slate-600">{row.supportPhone ?? '—'}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={[
-                      'inline-flex rounded-full px-2 py-0.5 text-xs',
-                      row.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600',
-                    ].join(' ')}
-                  >
-                    {row.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="inline-flex gap-2">
-                    <button
-                      className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs hover:bg-slate-50"
-                      onClick={() => startEdit(row)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs text-red-700 hover:bg-red-50"
-                      onClick={() => onDelete(row)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {!loading && (data?.items?.length ?? 0) === 0 && (
-              <tr>
-                <td className="px-4 py-6 text-center text-slate-500" colSpan={5}>
-                  No courier companies found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          ))}
+          {!loading && (data?.items?.length ?? 0) === 0 && (
+            <tr>
+              <td className={emptyCellClass} colSpan={5}>
+                No courier companies found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </DataTable>
 
-      <div className="flex items-center justify-between">
-        <div className="text-xs text-slate-500">
-          Page {page} of {data?.totalPages ?? 1}
-        </div>
-        <div className="flex gap-2">
-          <button
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Prev
-          </button>
-          <button
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
-            disabled={page >= (data?.totalPages ?? 1)}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <PaginationBar
+        page={page}
+        totalPages={data?.totalPages ?? 1}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => p + 1)}
+      />
     </div>
   )
 }

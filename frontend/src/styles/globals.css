@@ -1,0 +1,57 @@
+/*
+ * Semantic theme tokens — consumed by Tailwind @layer utilities in index.css.
+ * `.dark` is toggled on <html> by ThemeProvider.
+ */
+
+:root {
+  color-scheme: light;
+
+  --erp-bg: 248 250 252;
+  --erp-surface: 255 255 255;
+  --erp-surface-elevated: 255 255 255;
+  --erp-border: 226 232 240;
+  --erp-border-strong: 203 213 225;
+  --erp-text: 15 23 42;
+  --erp-text-muted: 100 116 139;
+  --erp-text-subtle: 148 163 184;
+  --erp-primary: 15 23 42;
+  --erp-primary-hover: 30 41 59;
+  --erp-primary-fg: 255 255 255;
+  --erp-accent: 37 99 235;
+  --erp-hover: 241 245 249;
+  --erp-overlay: 15 23 42;
+  --erp-ring: 15 23 42;
+  --erp-chart: 241 245 249;
+  --erp-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --erp-bg: 9 9 11;
+  --erp-surface: 24 24 27;
+  --erp-surface-elevated: 39 39 42;
+  --erp-border: 63 63 70;
+  --erp-border-strong: 82 82 91;
+  --erp-text: 244 244 245;
+  --erp-text-muted: 161 161 170;
+  --erp-text-subtle: 113 113 122;
+  --erp-primary: 244 244 245;
+  --erp-primary-hover: 228 228 231;
+  --erp-primary-fg: 9 9 11;
+  --erp-accent: 96 165 250;
+  --erp-hover: 39 39 42;
+  --erp-overlay: 0 0 0;
+  --erp-ring: 161 161 170;
+  --erp-chart: 39 39 42;
+  --erp-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+}
+
+html {
+  @apply transition-colors duration-300;
+}
+
+body {
+  background-color: rgb(var(--erp-bg));
+  color: rgb(var(--erp-text));
+}

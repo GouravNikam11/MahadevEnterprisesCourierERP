@@ -1,3 +1,5 @@
+@import './styles/globals.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,4 +8,256 @@ html,
 body,
 #root {
   height: 100%;
+}
+
+body {
+  @apply overflow-x-hidden antialiased transition-colors duration-300;
+}
+
+/*
+ * Centralized ERP UI — all pages should prefer these classes over raw slate colors.
+ * Dark mode: html.dark (Tailwind darkMode: 'class')
+ */
+@layer components {
+  /* ---- Shell / layout ---- */
+  .erp-shell {
+    @apply min-h-screen overflow-x-hidden bg-erp-bg text-erp-text transition-colors duration-300;
+  }
+
+  .erp-header {
+    @apply sticky top-0 z-30 shrink-0 border-b border-erp-border bg-erp-surface/95 backdrop-blur transition-colors duration-300 supports-[backdrop-filter]:bg-erp-surface/90;
+  }
+
+  .erp-sidebar {
+    @apply flex h-full flex-col border-r border-erp-border bg-erp-surface p-4 transition-colors duration-300;
+  }
+
+  .erp-sidebar-title {
+    @apply text-lg font-semibold leading-tight text-erp-text;
+  }
+
+  .erp-sidebar-subtitle {
+    @apply text-xs text-erp-muted;
+  }
+
+  .erp-nav-link {
+    @apply block min-h-[44px] rounded-md px-3 py-2.5 text-sm text-erp-muted transition-colors duration-200 hover:bg-erp-hover hover:text-erp-text;
+  }
+
+  .erp-nav-link-active {
+    @apply bg-erp-primary text-erp-primary-fg hover:bg-erp-primary-hover hover:text-erp-primary-fg;
+  }
+
+  .erp-overlay-backdrop {
+    @apply fixed inset-0 z-40 bg-erp-overlay/50 transition-opacity duration-300;
+  }
+
+  /* ---- Auth (login, forgot password, etc.) ---- */
+  .erp-auth-page {
+    @apply min-h-screen bg-erp-bg text-erp-text transition-colors duration-300;
+  }
+
+  .erp-auth-card {
+    @apply w-full max-w-md rounded-xl border border-erp-border bg-erp-surface p-6 shadow-erp transition-colors duration-300;
+  }
+
+  .erp-link {
+    @apply text-sm text-erp-muted transition-colors hover:text-erp-text hover:underline;
+  }
+
+  /* ---- Page structure ---- */
+  .erp-page {
+    @apply min-w-0 space-y-4 sm:space-y-5;
+  }
+
+  .erp-page-title {
+    @apply text-xl font-semibold tracking-tight text-erp-text sm:text-2xl;
+  }
+
+  .erp-muted {
+    @apply text-sm text-erp-muted;
+  }
+
+  .erp-card {
+    @apply rounded-xl border border-erp-border bg-erp-surface p-3 shadow-erp transition-colors duration-300 sm:p-4 md:p-5;
+  }
+
+  .erp-card-muted {
+    @apply rounded-md border border-erp-border bg-erp-surface p-3 text-sm text-erp-text transition-colors duration-300;
+  }
+
+  /* ---- Forms ---- */
+  .erp-form-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3;
+  }
+
+  .erp-form-span-full {
+    @apply sm:col-span-2;
+  }
+
+  .erp-form-actions {
+    @apply flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:flex-wrap;
+  }
+
+  .erp-label {
+    @apply mb-1 block text-xs font-medium text-erp-muted;
+  }
+
+  .erp-input {
+    @apply w-full min-w-0 rounded-md border border-erp-border-strong bg-erp-surface px-3 py-2.5 text-sm text-erp-text outline-none transition-colors duration-200 placeholder:text-erp-subtle focus:border-erp-primary focus:ring-1 focus:ring-erp-ring;
+    min-height: 2.75rem;
+  }
+
+  .erp-btn-primary {
+    @apply inline-flex min-h-[44px] w-full items-center justify-center rounded-md bg-erp-primary px-4 py-2.5 text-sm font-medium text-erp-primary-fg transition-colors duration-200 hover:bg-erp-primary-hover disabled:opacity-60 sm:w-auto;
+  }
+
+  .erp-btn-secondary {
+    @apply inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-erp-border bg-erp-surface px-3 py-2.5 text-sm text-erp-text transition-colors duration-200 hover:bg-erp-hover disabled:opacity-50 sm:w-auto;
+  }
+
+  .erp-btn-table {
+    @apply inline-flex min-h-[36px] w-auto items-center justify-center rounded-md border border-erp-border bg-erp-surface px-2.5 py-1 text-xs text-erp-text transition-colors duration-200 hover:bg-erp-hover sm:min-h-[40px];
+  }
+
+  .erp-btn-danger {
+    @apply inline-flex min-h-[36px] items-center justify-center rounded-md border border-red-300/80 bg-erp-surface px-2.5 py-1 text-xs text-red-600 transition-colors duration-200 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40 sm:min-h-[44px] sm:px-3 sm:py-2 sm:text-sm;
+  }
+
+  .erp-icon-btn {
+    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-erp-border bg-erp-surface text-erp-text transition-colors duration-200 hover:bg-erp-hover;
+  }
+
+  .erp-icon-btn-border {
+    @apply border-erp-border bg-erp-surface;
+  }
+
+  .erp-theme-pill {
+    @apply text-erp-muted hover:bg-erp-hover hover:text-erp-text;
+  }
+
+  .erp-theme-pill-active {
+    @apply bg-erp-primary text-erp-primary-fg;
+  }
+
+  .erp-toolbar {
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center;
+  }
+
+  /* ---- Tables ---- */
+  .erp-table-wrap {
+    @apply overflow-hidden rounded-xl border border-erp-border bg-erp-surface shadow-erp transition-colors duration-300;
+  }
+
+  .erp-table {
+    @apply w-full text-left text-sm text-erp-text;
+  }
+
+  .erp-table thead {
+    @apply bg-erp-hover text-xs text-erp-muted;
+  }
+
+  .erp-table th {
+    @apply whitespace-nowrap border-b border-erp-border px-3 py-3 font-medium sm:px-4;
+  }
+
+  .erp-table td {
+    @apply border-b border-erp-border/60 px-3 py-3 sm:px-4;
+  }
+
+  .erp-table tbody tr {
+    @apply transition-colors duration-150;
+  }
+
+  .erp-table tbody tr:hover {
+    @apply bg-erp-hover/70;
+  }
+
+  .erp-table tbody tr:nth-child(even) {
+    @apply bg-erp-hover/30;
+  }
+
+  .erp-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .erp-pagination {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  /* ---- Alerts & badges ---- */
+  .erp-alert-error {
+    @apply rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300;
+  }
+
+  .erp-alert-success {
+    @apply rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300;
+  }
+
+  .erp-alert-warning {
+    @apply rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200;
+  }
+
+  .erp-alert-info {
+    @apply rounded-lg border border-erp-border bg-erp-surface px-4 py-3 text-sm text-erp-text shadow-erp;
+  }
+
+  .erp-badge-active {
+    @apply inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400;
+  }
+
+  .erp-badge-inactive {
+    @apply inline-flex rounded-full bg-erp-hover px-2 py-0.5 text-xs text-erp-muted;
+  }
+
+  /* ---- Modal ---- */
+  .erp-modal-overlay {
+    @apply fixed inset-0 z-[60] flex items-end justify-center bg-erp-overlay/50 p-0 transition-colors sm:items-center sm:p-4;
+  }
+
+  .erp-modal-panel {
+    @apply max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-xl border border-erp-border bg-erp-surface shadow-erp transition-colors sm:rounded-xl;
+  }
+
+  .erp-modal-header {
+    @apply flex items-center justify-between border-b border-erp-border px-4 py-3;
+  }
+
+  /* ---- Charts (placeholders / future charts) ---- */
+  .erp-chart-area {
+    @apply mt-2 h-32 rounded-lg bg-erp-chart transition-colors duration-300 sm:h-40;
+  }
+
+  .erp-stat-icon {
+    @apply h-8 w-8 shrink-0 rounded-lg bg-erp-hover transition-colors duration-300;
+  }
+
+  .erp-stat-title {
+    @apply text-sm font-medium text-erp-text;
+  }
+
+  .erp-stat-hint {
+    @apply text-xs text-erp-muted;
+  }
+
+  /* ---- Skeleton / empty ---- */
+  .erp-skeleton {
+    @apply animate-pulse rounded-md bg-erp-hover;
+  }
+
+  .erp-empty {
+    @apply py-6 text-center text-erp-muted;
+  }
+
+  .erp-receipt-cell {
+    @apply rounded-md border border-erp-border bg-erp-surface p-3 transition-colors duration-300;
+  }
+
+  .erp-text-secondary {
+    @apply text-erp-muted;
+  }
+
+  .erp-text-primary {
+    @apply text-erp-text;
+  }
 }

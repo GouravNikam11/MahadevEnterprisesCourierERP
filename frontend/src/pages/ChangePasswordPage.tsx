@@ -8,6 +8,15 @@ import { PasswordInput } from '../components/PasswordInput'
 import { changePasswordRequest } from '../services/authApi'
 import type { AppDispatch } from '../redux/store'
 import { clearSession } from '../redux/slices/authSlice'
+import { PageHeader } from '../components/layout/PageHeader'
+import {
+  alertErrorClass,
+  alertSuccessClass,
+  btnPrimaryClass,
+  cardClass,
+  labelClass,
+  pageClass,
+} from '../components/layout/uiClasses'
 
 const schema = z
   .object({
@@ -48,64 +57,51 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <section className="mx-auto max-w-lg space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Change password</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Update your password while signed in. You will be signed out on all devices after saving.
-        </p>
-      </header>
+    <div className={pageClass}>
+      <PageHeader
+        title="Change password"
+        subtitle="Update your password while signed in. You will be signed out on all devices after saving."
+      />
 
       {success ? (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-          Password updated. Redirecting to sign in…
-        </p>
+        <p className={alertSuccessClass}>Password updated. Redirecting to sign in…</p>
       ) : (
-        <form
-          className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-6"
-          onSubmit={form.handleSubmit(onSubmit)}
-        >
+        <form className={`${cardClass} space-y-4`} onSubmit={form.handleSubmit(onSubmit)}>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Current password</span>
+            <span className={labelClass}>Current password</span>
             <PasswordInput autoComplete="current-password" {...form.register('currentPassword')} />
             {form.formState.errors.currentPassword && (
-              <span className="mt-1 block text-xs text-red-600">
+              <span className="mt-1 block text-xs text-red-600 dark:text-red-400">
                 {form.formState.errors.currentPassword.message}
               </span>
             )}
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">New password</span>
+            <span className={labelClass}>New password</span>
             <PasswordInput autoComplete="new-password" {...form.register('newPassword')} />
             {form.formState.errors.newPassword && (
-              <span className="mt-1 block text-xs text-red-600">{form.formState.errors.newPassword.message}</span>
+              <span className="mt-1 block text-xs text-red-600 dark:text-red-400">{form.formState.errors.newPassword.message}</span>
             )}
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Confirm new password</span>
+            <span className={labelClass}>Confirm new password</span>
             <PasswordInput autoComplete="new-password" {...form.register('confirmPassword')} />
             {form.formState.errors.confirmPassword && (
-              <span className="mt-1 block text-xs text-red-600">
+              <span className="mt-1 block text-xs text-red-600 dark:text-red-400">
                 {form.formState.errors.confirmPassword.message}
               </span>
             )}
           </label>
 
-          <button
-            type="submit"
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-            disabled={form.formState.isSubmitting}
-          >
+          <button type="submit" className={btnPrimaryClass} disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? 'Saving...' : 'Update password'}
           </button>
 
-          {form.formState.errors.root?.message && (
-            <p className="text-sm text-red-600">{form.formState.errors.root.message}</p>
-          )}
+          {form.formState.errors.root?.message && <p className={alertErrorClass}>{form.formState.errors.root.message}</p>}
         </form>
       )}
-    </section>
+    </div>
   )
 }

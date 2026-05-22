@@ -12,14 +12,14 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/app/dashboard', label: 'Dashboard', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'STAFF'] },
   { to: '/app/account-party', label: 'Account Party', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'] },
   { to: '/app/account-booking', label: 'Account Booking', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'STAFF'] },
-  { to: '/app/cash-booking', label: 'Cash Booking', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'STAFF'] },
   { to: '/app/courier-company', label: 'Courier Company', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'] },
-  { to: '/app/pincode', label: 'Pincode Master', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'] },
-  { to: '/app/status', label: 'Courier Status', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'STAFF'] },
-  { to: '/app/reports', label: 'Reports', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'] },
-  { to: '/app/users', label: 'Users', roles: ['SUPER_ADMIN', 'ADMIN'] },
-  { to: '/app/billing', label: 'Billing', roles: ['SUPER_ADMIN'] },
-  { to: '/app/settings', label: 'Settings', roles: ['SUPER_ADMIN'] },
+  // { to: '/app/cash-booking', label: 'Cash Booking', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'STAFF'] },
+  // { to: '/app/pincode', label: 'Pincode Master', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'] },
+  // { to: '/app/status', label: 'Courier Status', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'STAFF'] },
+  // { to: '/app/reports', label: 'Reports', roles: ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'] },
+  // { to: '/app/users', label: 'Users', roles: ['SUPER_ADMIN', 'ADMIN'] },
+  // { to: '/app/billing', label: 'Billing', roles: ['SUPER_ADMIN'] },
+  // { to: '/app/settings', label: 'Settings', roles: ['SUPER_ADMIN'] },
 ]
 
 export function navForRole(role: string | undefined): NavItem[] {

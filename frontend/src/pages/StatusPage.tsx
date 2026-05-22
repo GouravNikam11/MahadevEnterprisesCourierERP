@@ -49,19 +49,19 @@ export function StatusPage() {
   return (
     <div className="space-y-4">
       <div>
-        <div className="text-2xl font-semibold">Courier Status</div>
-        <div className="text-sm text-slate-500">Update status and view timeline history</div>
+        <div className="erp-page-title">Courier Status</div>
+        <div className="erp-muted">Update status and view timeline history</div>
       </div>
 
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && <div className="erp-alert-error">{error}</div>}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="erp-card">
         <div className="mb-3 text-sm font-medium">Update status</div>
-        <form className="grid grid-cols-1 gap-3 md:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}>
+        <form className="erp-form-grid" onSubmit={form.handleSubmit(onSubmit)}>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Booking type</label>
+            <label className="erp-label">Booking type</label>
             <select
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className="erp-input"
               {...form.register('bookingType')}
             >
               <option value="account">Account booking</option>
@@ -69,17 +69,17 @@ export function StatusPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Booking ID *</label>
+            <label className="erp-label">Booking ID *</label>
             <input
               placeholder="UUID"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className="erp-input"
               {...form.register('bookingId')}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Status</label>
+            <label className="erp-label">Status</label>
             <select
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className="erp-input"
               {...form.register('status')}
             >
               {schema.shape.status.options.map((s) => (
@@ -90,9 +90,9 @@ export function StatusPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Remarks</label>
+            <label className="erp-label">Remarks</label>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className="erp-input"
               {...form.register('remarks')}
             />
           </div>
@@ -100,7 +100,7 @@ export function StatusPage() {
             <button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+              className="erp-btn-primary"
             >
               {form.formState.isSubmitting ? 'Updating…' : 'Update status'}
             </button>
@@ -108,19 +108,19 @@ export function StatusPage() {
         </form>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="erp-card">
         <div className="mb-3 text-sm font-medium">Timeline</div>
-        {!timeline && <div className="text-sm text-slate-500">Submit a status update to load timeline.</div>}
-        {timeline && timeline.length === 0 && <div className="text-sm text-slate-500">No timeline found.</div>}
+        {!timeline && <div className="erp-muted">Submit a status update to load timeline.</div>}
+        {timeline && timeline.length === 0 && <div className="erp-muted">No timeline found.</div>}
         {timeline && timeline.length > 0 && (
           <div className="space-y-2">
             {timeline.map((t) => (
-              <div key={t.id} className="rounded-md border border-slate-200 p-3 text-sm">
+              <div key={t.id} className="rounded-md border border-erp-border p-3 text-sm">
                 <div className="flex items-center justify-between">
                   <div className="font-medium">{t.status}</div>
-                  <div className="text-xs text-slate-500">{String(t.occurredAt).replace('T', ' ').slice(0, 19)}</div>
+                  <div className="text-xs erp-muted">{String(t.occurredAt).replace('T', ' ').slice(0, 19)}</div>
                 </div>
-                {t.remarks && <div className="mt-1 text-slate-600">{t.remarks}</div>}
+                {t.remarks && <div className="mt-1 text-erp-muted">{t.remarks}</div>}
               </div>
             ))}
           </div>

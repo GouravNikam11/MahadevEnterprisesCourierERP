@@ -5,6 +5,31 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { createAccountBooking, listAccountBookings } from '../../services/bookingApi'
 import { lookupAccountParties, lookupCourierCompanies, type LookupItem } from '../../services/lookupApi'
 import { ReceiptModal } from '../../components/ReceiptModal'
+import { DataTable } from '../../components/layout/DataTable'
+import { PageHeader } from '../../components/layout/PageHeader'
+import { PaginationBar } from '../../components/layout/PaginationBar'
+import {
+  btnPrimaryClass,
+  btnSecondaryClass,
+  alertErrorClass,
+  alertInfoClass,
+  btnTableActionClass,
+  cardClass,
+  cardMutedClass,
+  emptyCellClass,
+  mutedTextClass,
+  receiptCellClass,
+  textPrimaryClass,
+  textSecondaryClass,
+  formActionsClass,
+  formGridClass,
+  formSpanFullClass,
+  inputClass,
+  labelClass,
+  pageClass,
+  selectClass,
+  toolbarClass,
+} from '../../components/layout/uiClasses'
 import { downloadCsv } from '../../utils/csv'
 
 const schema = z.object({
@@ -103,29 +128,29 @@ export function AccountBookingPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="text-2xl font-semibold">Account Booking</div>
-        <div className="text-sm text-slate-500">Create account bookings and generate tracking link</div>
-      </div>
+    <div className={pageClass}>
+      <PageHeader
+        title="Account Booking"
+        subtitle="Create account bookings and generate tracking link"
+      />
 
       {trackingLink && (
-        <div className="rounded-md border border-slate-200 bg-white p-3 text-sm">
+        <div className={cardMutedClass}>
           Tracking link:{' '}
-          <a className="underline" href={trackingLink} target="_blank" rel="noreferrer">
+          <a className="text-erp-accent underline" href={trackingLink} target="_blank" rel="noreferrer">
             {trackingLink}
           </a>
         </div>
       )}
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && <div className={alertErrorClass}>{error}</div>}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="mb-3 text-sm font-medium">New booking</div>
-        <form className="grid grid-cols-1 gap-3 md:grid-cols-2" onSubmit={form.handleSubmit(onCreate)}>
+      <div className={cardClass}>
+        <div className="mb-3 text-sm font-medium text-erp-text">New booking</div>
+        <form className={formGridClass} onSubmit={form.handleSubmit(onCreate)}>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Account Party *</label>
+            <label className={labelClass}>Account Party *</label>
             <select
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={selectClass}
               {...form.register('accountPartyId')}
             >
               <option value="">Select</option>
@@ -137,9 +162,9 @@ export function AccountBookingPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Courier Company *</label>
+            <label className={labelClass}>Courier Company *</label>
             <select
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={selectClass}
               {...form.register('courierCompanyId')}
             >
               <option value="">Select</option>
@@ -151,71 +176,67 @@ export function AccountBookingPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Customer name *</label>
+            <label className={labelClass}>Customer name *</label>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={inputClass}
               {...form.register('customerName')}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Customer phone</label>
+            <label className={labelClass}>Customer phone</label>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={inputClass}
               {...form.register('customerPhone')}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Courier number *</label>
+            <label className={labelClass}>Courier number *</label>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={inputClass}
               {...form.register('courierNumber')}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Destination</label>
+            <label className={labelClass}>Destination</label>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={inputClass}
               {...form.register('destination')}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Weight</label>
+            <label className={labelClass}>Weight</label>
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={inputClass}
               {...form.register('weight')}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Charges</label>
+            <label className={labelClass}>Charges</label>
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={inputClass}
               {...form.register('charges')}
             />
           </div>
-          <div className="md:col-span-2">
-            <label className="mb-1 block text-xs font-medium text-slate-700">Remarks</label>
+          <div className={formSpanFullClass}>
+            <label className={labelClass}>Remarks</label>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className={inputClass}
               {...form.register('remarks')}
             />
           </div>
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
-            >
+          <div className={formActionsClass}>
+            <button type="submit" disabled={form.formState.isSubmitting} className={btnPrimaryClass}>
               {form.formState.isSubmitting ? 'Saving…' : 'Save booking'}
             </button>
           </div>
         </form>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className={toolbarClass}>
         <input
           value={q}
           onChange={(e) => {
@@ -223,7 +244,7 @@ export function AccountBookingPage() {
             setPage(1)
           }}
           placeholder="Search by courier number / customer"
-          className="w-full max-w-md rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+          className={`${inputClass} sm:max-w-md`}
         />
         <button
           onClick={() =>
@@ -238,111 +259,91 @@ export function AccountBookingPage() {
               })),
             )
           }
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50"
+          className={btnSecondaryClass}
         >
           Export CSV
         </button>
-        <div className="text-xs text-slate-500">{loading ? 'Loading…' : ' '}</div>
+        <div className={`text-xs ${mutedTextClass}`}>{loading ? 'Loading…' : ' '}</div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-600">
-            <tr>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Courier #</th>
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Receipt</th>
+      <DataTable minWidth="560px">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Courier #</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th className="text-right">Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(data?.items ?? []).map((row) => (
+            <tr key={row.id}>
+              <td className={textSecondaryClass}>{String(row.bookingDate).slice(0, 10)}</td>
+              <td className="font-medium text-erp-text">{row.courierNumber}</td>
+              <td className={textPrimaryClass}>{row.customerName}</td>
+              <td className={textSecondaryClass}>{row.status}</td>
+              <td className="text-right">
+                <button type="button" className={btnTableActionClass} onClick={() => setReceiptRow(row)}>
+                  Print
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {(data?.items ?? []).map((row) => (
-              <tr key={row.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 text-slate-600">{String(row.bookingDate).slice(0, 10)}</td>
-                <td className="px-4 py-3 font-medium">{row.courierNumber}</td>
-                <td className="px-4 py-3 text-slate-700">{row.customerName}</td>
-                <td className="px-4 py-3 text-slate-600">{row.status}</td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs hover:bg-slate-50"
-                    onClick={() => setReceiptRow(row)}
-                  >
-                    Print
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {!loading && (data?.items?.length ?? 0) === 0 && (
-              <tr>
-                <td className="px-4 py-6 text-center text-slate-500" colSpan={5}>
-                  No bookings found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          ))}
+          {!loading && (data?.items?.length ?? 0) === 0 && (
+            <tr>
+              <td className={emptyCellClass} colSpan={5}>
+                No bookings found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </DataTable>
 
       {receiptRow && (
         <ReceiptModal title="Account Booking Receipt" onClose={() => setReceiptRow(null)}>
           <div className="space-y-3 text-sm">
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-base font-semibold">Mahadev Enterprises</div>
-                <div className="text-xs text-slate-500">Courier Booking Receipt</div>
+                <div className="text-base font-semibold text-erp-text">Mahadev Enterprises</div>
+                <div className={`text-xs ${mutedTextClass}`}>Courier Booking Receipt</div>
               </div>
-              <div className="text-right text-xs text-slate-500">
+              <div className={`text-right text-xs ${mutedTextClass}`}>
                 Date: {String(receiptRow.bookingDate).slice(0, 10)}
               </div>
             </div>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">Courier Number</div>
-                <div className="font-medium">{receiptRow.courierNumber}</div>
+              <div className={receiptCellClass}>
+                <div className={`text-xs ${mutedTextClass}`}>Courier Number</div>
+                <div className="font-medium text-erp-text">{receiptRow.courierNumber}</div>
               </div>
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">Customer</div>
-                <div className="font-medium">{receiptRow.customerName}</div>
-                {receiptRow.customerPhone && <div className="text-xs text-slate-500">{receiptRow.customerPhone}</div>}
+              <div className={receiptCellClass}>
+                <div className={`text-xs ${mutedTextClass}`}>Customer</div>
+                <div className="font-medium text-erp-text">{receiptRow.customerName}</div>
+                {receiptRow.customerPhone && <div className={`text-xs ${mutedTextClass}`}>{receiptRow.customerPhone}</div>}
               </div>
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">Status</div>
-                <div className="font-medium">{receiptRow.status}</div>
+              <div className={receiptCellClass}>
+                <div className={`text-xs ${mutedTextClass}`}>Status</div>
+                <div className="font-medium text-erp-text">{receiptRow.status}</div>
               </div>
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">Remarks</div>
-                <div className="font-medium">{receiptRow.remarks ?? '—'}</div>
+              <div className={receiptCellClass}>
+                <div className={`text-xs ${mutedTextClass}`}>Remarks</div>
+                <div className="font-medium text-erp-text">{receiptRow.remarks ?? '—'}</div>
               </div>
             </div>
-            <div className="text-xs text-slate-500">
+            <div className={`text-xs ${mutedTextClass}`}>
               Note: Tracking link is shown after saving if courier company has a template.
             </div>
           </div>
         </ReceiptModal>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="text-xs text-slate-500">
-          Page {page} of {data?.totalPages ?? 1}
-        </div>
-        <div className="flex gap-2">
-          <button
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Prev
-          </button>
-          <button
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
-            disabled={page >= (data?.totalPages ?? 1)}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <PaginationBar
+        page={page}
+        totalPages={data?.totalPages ?? 1}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => p + 1)}
+      />
     </div>
   )
 }

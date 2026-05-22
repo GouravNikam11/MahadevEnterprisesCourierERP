@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { btnPrimaryClass, btnSecondaryClass } from './layout/uiClasses'
 
 export function ReceiptModal(props: { title: string; onClose: () => void; children: React.ReactNode }) {
   useEffect(() => {
@@ -10,28 +11,22 @@ export function ReceiptModal(props: { title: string; onClose: () => void; childr
   }, [props])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onMouseDown={props.onClose}>
-      <div
-        className="w-full max-w-2xl rounded-xl bg-white shadow-lg"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <div className="text-sm font-medium">{props.title}</div>
-          <button
-            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs hover:bg-slate-50"
-            onClick={props.onClose}
-          >
+    <div className="erp-modal-overlay" onMouseDown={props.onClose} role="presentation">
+      <div className="erp-modal-panel" onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="erp-modal-header">
+          <div className="text-sm font-medium text-erp-text">{props.title}</div>
+          <button type="button" className={btnSecondaryClass + ' !min-h-[32px] !w-auto !px-2 !py-1 !text-xs'} onClick={props.onClose}>
             Close
           </button>
         </div>
-        <div className="p-4">
+        <div className="p-4 text-erp-text">
           <div className="print:p-0">{props.children}</div>
-          <div className="mt-4 flex justify-end gap-2 print:hidden">
-            <button
-              className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50"
-              onClick={() => window.print()}
-            >
+          <div className="mt-4 flex flex-col gap-2 justify-end sm:flex-row print:hidden">
+            <button type="button" className={btnSecondaryClass} onClick={() => window.print()}>
               Print
+            </button>
+            <button type="button" className={btnPrimaryClass + ' sm:hidden'} onClick={props.onClose}>
+              Done
             </button>
           </div>
         </div>
@@ -39,4 +34,3 @@ export function ReceiptModal(props: { title: string; onClose: () => void; childr
     </div>
   )
 }
-

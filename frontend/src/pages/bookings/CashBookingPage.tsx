@@ -124,54 +124,54 @@ export function CashBookingPage() {
   return (
     <div className="space-y-4">
       <div>
-        <div className="text-2xl font-semibold">Cash Booking</div>
-        <div className="text-sm text-slate-500">Fast entry cash bookings with pincode lookup</div>
+        <div className="erp-page-title">Cash Booking</div>
+        <div className="erp-muted">Fast entry cash bookings with pincode lookup</div>
       </div>
 
       {trackingLink && (
-        <div className="rounded-md border border-slate-200 bg-white p-3 text-sm">
+        <div className="erp-card-muted">
           Tracking link:{' '}
           <a className="underline" href={trackingLink} target="_blank" rel="noreferrer">
             {trackingLink}
           </a>
         </div>
       )}
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && <div className="erp-alert-error">{error}</div>}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="erp-card">
         <div className="mb-3 text-sm font-medium">New booking</div>
-        <form className="grid grid-cols-1 gap-3 md:grid-cols-2" onSubmit={form.handleSubmit(onCreate)}>
+        <form className="erp-form-grid" onSubmit={form.handleSubmit(onCreate)}>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">From name *</label>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('fromName')} />
+            <label className="erp-label">From name *</label>
+            <input className="erp-input" {...form.register('fromName')} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">To name *</label>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('toName')} />
+            <label className="erp-label">To name *</label>
+            <input className="erp-input" {...form.register('toName')} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Mobile number</label>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('mobileNumber')} />
+            <label className="erp-label">Mobile number</label>
+            <input className="erp-input" {...form.register('mobileNumber')} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Location</label>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('location')} />
+            <label className="erp-label">Location</label>
+            <input className="erp-input" {...form.register('location')} />
           </div>
 
           <div className="md:col-span-2 grid grid-cols-1 gap-2 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">Search pincode</label>
+              <label className="erp-label">Search pincode</label>
               <input
                 value={pincodeSearch}
                 onChange={(e) => setPincodeSearch(e.target.value)}
                 placeholder="Type pincode / area / city"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                className="erp-input"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">Select pincode</label>
+              <label className="erp-label">Select pincode</label>
               <select
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+                className="erp-input"
                 {...form.register('pincodeId')}
               >
                 <option value="">(optional)</option>
@@ -185,9 +185,9 @@ export function CashBookingPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Courier Company *</label>
+            <label className="erp-label">Courier Company *</label>
             <select
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+              className="erp-input"
               {...form.register('courierCompanyId')}
             >
               <option value="">Select</option>
@@ -199,26 +199,26 @@ export function CashBookingPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Courier number *</label>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('courierNumber')} />
+            <label className="erp-label">Courier number *</label>
+            <input className="erp-input" {...form.register('courierNumber')} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Weight</label>
-            <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('weight')} />
+            <label className="erp-label">Weight</label>
+            <input type="number" step="0.01" className="erp-input" {...form.register('weight')} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Amount</label>
-            <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('amount')} />
+            <label className="erp-label">Amount</label>
+            <input type="number" step="0.01" className="erp-input" {...form.register('amount')} />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-xs font-medium text-slate-700">Remarks</label>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900" {...form.register('remarks')} />
+            <label className="erp-label">Remarks</label>
+            <input className="erp-input" {...form.register('remarks')} />
           </div>
           <div className="md:col-span-2">
             <button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+              className="erp-btn-primary"
             >
               {form.formState.isSubmitting ? 'Saving…' : 'Save booking'}
             </button>
@@ -234,7 +234,7 @@ export function CashBookingPage() {
             setPage(1)
           }}
           placeholder="Search by courier number / names"
-          className="w-full max-w-md rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+          className="erp-input sm:max-w-md"
         />
         <button
           onClick={() =>
@@ -250,16 +250,16 @@ export function CashBookingPage() {
               })),
             )
           }
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50"
+          className="erp-btn-secondary"
         >
           Export CSV
         </button>
-        <div className="text-xs text-slate-500">{loading ? 'Loading…' : ' '}</div>
+        <div className="text-xs erp-muted">{loading ? 'Loading…' : ' '}</div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="erp-table-wrap">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-600">
+          <thead className="erp-table thead">
             <tr>
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Courier #</th>
@@ -270,16 +270,16 @@ export function CashBookingPage() {
           </thead>
           <tbody>
             {(data?.items ?? []).map((row) => (
-              <tr key={row.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 text-slate-600">{String(row.bookingDate).slice(0, 10)}</td>
+              <tr key={row.id} className="">
+                <td className="px-4 py-3 text-erp-muted">{String(row.bookingDate).slice(0, 10)}</td>
                 <td className="px-4 py-3 font-medium">{row.courierNumber}</td>
-                <td className="px-4 py-3 text-slate-700">
+                <td className="px-4 py-3 text-erp-text">
                   {row.fromName} → {row.toName}
                 </td>
-                <td className="px-4 py-3 text-slate-600">{row.status}</td>
+                <td className="px-4 py-3 text-erp-muted">{row.status}</td>
                 <td className="px-4 py-3 text-right">
                   <button
-                    className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs hover:bg-slate-50"
+                    className="rounded-md border border-erp-border bg-white px-2.5 py-1 text-xs hover:bg-erp-hover"
                     onClick={() => setReceiptRow(row)}
                   >
                     Print
@@ -289,7 +289,7 @@ export function CashBookingPage() {
             ))}
             {!loading && (data?.items?.length ?? 0) === 0 && (
               <tr>
-                <td className="px-4 py-6 text-center text-slate-500" colSpan={5}>
+                <td className="erp-empty" colSpan={5}>
                   No bookings found
                 </td>
               </tr>
@@ -304,34 +304,34 @@ export function CashBookingPage() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-base font-semibold">Mahadev Enterprises</div>
-                <div className="text-xs text-slate-500">Courier Booking Receipt</div>
+                <div className="text-xs erp-muted">Courier Booking Receipt</div>
               </div>
-              <div className="text-right text-xs text-slate-500">
+              <div className="text-right text-xs erp-muted">
                 Date: {String(receiptRow.bookingDate).slice(0, 10)}
               </div>
             </div>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">Courier Number</div>
+              <div className="rounded-md border border-erp-border p-3">
+                <div className="text-xs erp-muted">Courier Number</div>
                 <div className="font-medium">{receiptRow.courierNumber}</div>
               </div>
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">From → To</div>
+              <div className="rounded-md border border-erp-border p-3">
+                <div className="text-xs erp-muted">From → To</div>
                 <div className="font-medium">
                   {receiptRow.fromName} → {receiptRow.toName}
                 </div>
-                {receiptRow.mobileNumber && <div className="text-xs text-slate-500">{receiptRow.mobileNumber}</div>}
+                {receiptRow.mobileNumber && <div className="text-xs erp-muted">{receiptRow.mobileNumber}</div>}
               </div>
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">Status</div>
+              <div className="rounded-md border border-erp-border p-3">
+                <div className="text-xs erp-muted">Status</div>
                 <div className="font-medium">{receiptRow.status}</div>
               </div>
-              <div className="rounded-md border border-slate-200 p-3">
-                <div className="text-xs text-slate-500">Remarks</div>
+              <div className="rounded-md border border-erp-border p-3">
+                <div className="text-xs erp-muted">Remarks</div>
                 <div className="font-medium">{receiptRow.remarks ?? '—'}</div>
               </div>
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs erp-muted">
               Note: Tracking link is shown after saving if courier company has a template.
             </div>
           </div>
@@ -339,19 +339,19 @@ export function CashBookingPage() {
       )}
 
       <div className="flex items-center justify-between">
-        <div className="text-xs text-slate-500">
+        <div className="text-xs erp-muted">
           Page {page} of {data?.totalPages ?? 1}
         </div>
         <div className="flex gap-2">
           <button
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-md border border-erp-border bg-white px-3 py-1.5 text-sm hover:bg-erp-hover disabled:opacity-50"
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             Prev
           </button>
           <button
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-md border border-erp-border bg-white px-3 py-1.5 text-sm hover:bg-erp-hover disabled:opacity-50"
             disabled={page >= (data?.totalPages ?? 1)}
             onClick={() => setPage((p) => p + 1)}
           >

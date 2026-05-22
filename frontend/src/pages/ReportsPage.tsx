@@ -1,5 +1,18 @@
 import { useState } from 'react'
 import { api } from '../services/api'
+import { DataTable } from '../components/layout/DataTable'
+import { PageHeader } from '../components/layout/PageHeader'
+import {
+  alertErrorClass,
+  btnPrimaryClass,
+  btnSecondaryClass,
+  cardClass,
+  formGridClass,
+  inputClass,
+  labelClass,
+  pageClass,
+  textPrimaryClass,
+} from '../components/layout/uiClasses'
 
 export function ReportsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
@@ -26,68 +39,52 @@ export function ReportsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="text-2xl font-semibold">Reports</div>
-        <div className="text-sm text-slate-500">Daily bookings (starter)</div>
-      </div>
+    <div className={pageClass}>
+      <PageHeader title="Reports" subtitle="Daily bookings (starter)" />
 
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && <div className={alertErrorClass}>{error}</div>}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className={cardClass}>
+        <div className={formGridClass}>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
-            />
+            <label className={labelClass}>Date</label>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
           </div>
-          <div className="flex items-end gap-2">
-            <button
-              onClick={run}
-              disabled={loading}
-              className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
-            >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <button type="button" onClick={run} disabled={loading} className={btnPrimaryClass}>
               {loading ? 'Running…' : 'Run'}
             </button>
-            <button
-              onClick={downloadCsv}
-              className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50"
-            >
+            <button type="button" onClick={downloadCsv} className={btnSecondaryClass}>
               Download CSV
             </button>
           </div>
         </div>
 
         {rows && (
-          <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-600">
+          <div className="mt-4">
+            <DataTable minWidth="480px">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Account</th>
-                  <th className="px-4 py-3">Cash</th>
-                  <th className="px-4 py-3">Total</th>
+                  <th>Date</th>
+                  <th>Account</th>
+                  <th>Cash</th>
+                  <th>Total</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.date} className="border-t border-slate-100">
-                    <td className="px-4 py-3">{r.date}</td>
-                    <td className="px-4 py-3">{r.accountBookings}</td>
-                    <td className="px-4 py-3">{r.cashBookings}</td>
-                    <td className="px-4 py-3 font-medium">{r.totalBookings}</td>
+                  <tr key={r.date}>
+                    <td className={textPrimaryClass}>{r.date}</td>
+                    <td>{r.accountBookings}</td>
+                    <td>{r.cashBookings}</td>
+                    <td className="font-medium text-erp-text">{r.totalBookings}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </div>
     </div>
   )
 }
-

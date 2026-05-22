@@ -82,25 +82,25 @@ export function UsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="text-2xl font-semibold">Users</div>
-        <p className="mt-1 text-sm text-slate-500">Create logins for Admin, Operator, and Staff. Operators manage day-to-day masters and bookings.</p>
+        <div className="erp-page-title">Users</div>
+        <p className="mt-1 erp-muted">Create logins for Admin, Operator, and Staff. Operators manage day-to-day masters and bookings.</p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
-        <div className="mb-3 text-sm font-medium text-slate-800">New user</div>
+      <div className="erp-card md:p-6">
+        <div className="mb-3 text-sm font-medium text-erp-text">New user</div>
         <form className="grid gap-3 md:grid-cols-2 lg:grid-cols-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div>
-            <label className="text-xs text-slate-600">Email</label>
-            <input className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm" {...form.register('email')} />
+            <label className="text-xs text-erp-muted">Email</label>
+            <input className="mt-1 w-full rounded-md border border-erp-border px-2 py-1.5 text-sm" {...form.register('email')} />
             {form.formState.errors.email && (
               <div className="text-xs text-red-600">{form.formState.errors.email.message}</div>
             )}
           </div>
           <div>
-            <label className="text-xs text-slate-600">Password (min 8)</label>
+            <label className="text-xs text-erp-muted">Password (min 8)</label>
             <PasswordInput
               autoComplete="new-password"
-              className="mt-1 border-slate-200 py-1.5 pl-2"
+              className="mt-1 border-erp-border py-1.5 pl-2"
               {...form.register('password')}
             />
             {form.formState.errors.password && (
@@ -108,12 +108,12 @@ export function UsersPage() {
             )}
           </div>
           <div>
-            <label className="text-xs text-slate-600">Display name (optional)</label>
-            <input className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm" {...form.register('name')} />
+            <label className="text-xs text-erp-muted">Display name (optional)</label>
+            <input className="mt-1 w-full rounded-md border border-erp-border px-2 py-1.5 text-sm" {...form.register('name')} />
           </div>
           <div>
-            <label className="text-xs text-slate-600">Role</label>
-            <select className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm" {...form.register('roleName')}>
+            <label className="text-xs text-erp-muted">Role</label>
+            <select className="mt-1 w-full rounded-md border border-erp-border px-2 py-1.5 text-sm" {...form.register('roleName')}>
               {allowedRoles.map((r) => (
                 <option key={r} value={r}>
                   {r.replaceAll('_', ' ')}
@@ -124,7 +124,7 @@ export function UsersPage() {
           <div className="md:col-span-2 lg:col-span-4">
             <button
               type="submit"
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              className="erp-btn-primary"
             >
               Create user
             </button>
@@ -137,11 +137,11 @@ export function UsersPage() {
         {success && <div className="mt-2 text-sm text-green-700">{success}</div>}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-800">All users</div>
+      <div className="erp-table-wrap">
+        <div className="border-b border-erp-border px-4 py-3 text-sm font-medium text-erp-text">All users</div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="">
               <tr>
                 <th className="px-4 py-2">Email</th>
                 <th className="px-4 py-2">Name</th>
@@ -153,24 +153,24 @@ export function UsersPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-slate-500">
+                  <td colSpan={5} className="erp-empty">
                     Loading…
                   </td>
                 </tr>
               )}
               {!loading &&
                 rows.map((u) => (
-                  <tr key={u.id} className="border-t border-slate-100">
-                    <td className="px-4 py-2 font-medium text-slate-900">{u.email}</td>
-                    <td className="px-4 py-2 text-slate-600">{u.name ?? '—'}</td>
-                    <td className="px-4 py-2 text-slate-600">{u.role.name}</td>
-                    <td className="px-4 py-2 text-slate-600">{u.status}</td>
-                    <td className="px-4 py-2 text-slate-500">{new Date(u.createdAt).toLocaleString()}</td>
+                  <tr key={u.id} className="">
+                    <td className="px-4 py-2 font-medium text-erp-text">{u.email}</td>
+                    <td className="px-4 py-2 text-erp-muted">{u.name ?? '—'}</td>
+                    <td className="px-4 py-2 text-erp-muted">{u.role.name}</td>
+                    <td className="px-4 py-2 text-erp-muted">{u.status}</td>
+                    <td className="px-4 py-2 text-erp-muted">{new Date(u.createdAt).toLocaleString()}</td>
                   </tr>
                 ))}
               {!loading && rows.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-slate-500">
+                  <td colSpan={5} className="erp-empty">
                     No users found.
                   </td>
                 </tr>

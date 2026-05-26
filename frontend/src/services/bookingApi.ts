@@ -13,6 +13,11 @@ export async function createAccountBooking(input: any) {
   return (res.data as any).data as { booking: AccountBooking; trackingLink: string | null }
 }
 
+export async function updateAccountBooking(id: string, input: any) {
+  const res = await api.put(`/account-booking/${id}`, input)
+  return (res.data as any).data.booking as AccountBooking
+}
+
 export async function listCashBookings(params: { q?: string; page?: number; pageSize?: number }) {
   const res = await api.get('/cash-booking', { params })
   return (res.data as any).data as { items: CashBooking[]; page: number; totalPages: number }

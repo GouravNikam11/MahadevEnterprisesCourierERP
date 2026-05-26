@@ -23,6 +23,8 @@ export const accountBookingCreateSchema = z.object({
   remarks: z.string().optional().or(z.literal('')),
 })
 
+export const accountBookingUpdateSchema = accountBookingCreateSchema
+
 export const cashBookingCreateSchema = z.object({
   bookingDate: z.coerce.date().optional(),
   fromName: z.string().min(2),

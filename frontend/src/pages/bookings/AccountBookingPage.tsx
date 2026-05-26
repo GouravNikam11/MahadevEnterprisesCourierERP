@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createAccountBooking, listAccountBookings } from '../../services/bookingApi'
+import { createAccountBooking, listAccountBookings, updateAccountBooking } from '../../services/bookingApi'
 import { lookupAccountParties, lookupCourierCompanies, type LookupItem } from '../../services/lookupApi'
+import { accountBookingToConsignmentLabel, ConsignmentLabel } from '../../components/ConsignmentLabel'
 import { ReceiptModal } from '../../components/ReceiptModal'
 import { DataTable } from '../../components/layout/DataTable'
 import { PageHeader } from '../../components/layout/PageHeader'
@@ -12,13 +13,11 @@ import {
   btnPrimaryClass,
   btnSecondaryClass,
   alertErrorClass,
-  alertInfoClass,
   btnTableActionClass,
   cardClass,
   cardMutedClass,
   emptyCellClass,
   mutedTextClass,
-  receiptCellClass,
   textPrimaryClass,
   textSecondaryClass,
   formActionsClass,
@@ -31,6 +30,7 @@ import {
   toolbarClass,
 } from '../../components/layout/uiClasses'
 import { downloadCsv } from '../../utils/csv'
+import { downloadExcel, downloadPdf } from '../../utils/export'
 
 const schema = z.object({
   accountPartyId: z.string().uuid(),
@@ -54,9 +54,15 @@ export function AccountBookingPage() {
   const [error, setError] = useState<string | null>(null)
   const [trackingLink, setTrackingLink] = useState<string | null>(null)
   const [receiptRow, setReceiptRow] = useState<any | null>(null)
+  const [editing, setEditing] = useState<any | null>(null)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
 
+  const formCardRef = useRef<HTMLDivElement>(null)
   const [accountParties, setAccountParties] = useState<LookupItem[]>([])
   const [courierCompanies, setCourierCompanies] = useState<LookupItem[]>([])
+
+  const pageSize = 10
+  const serialOffset = (page - 1) * pageSize
 
   const form = useForm<any>({
     resolver: zodResolver(schema) as any,
@@ -79,7 +85,7 @@ export function AccountBookingPage() {
     })
   }, [])
 
-  const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize: 10 }), [q, page])
+  const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize }), [q, page, pageSize])
 
   useEffect(() => {
     let cancelled = false
@@ -103,28 +109,104 @@ export function AccountBookingPage() {
     }
   }, [query])
 
+  const emptyFormValues = {
+    accountPartyId: '',
+    customerName: '',
+    customerPhone: '',
+    courierCompanyId: '',
+    courierNumber: '',
+    parcelType: '',
+    destination: '',
+    remarks: '',
+  } as const
+
+  const toPayload = (values: FormValues) => ({
+    ...values,
+    customerPhone: values.customerPhone || undefined,
+    parcelType: values.parcelType || undefined,
+    destination: values.destination || undefined,
+    remarks: values.remarks || undefined,
+  })
+
   const onCreate = async (values: FormValues) => {
     setError(null)
     setTrackingLink(null)
-    const res = await createAccountBooking({
-      ...values,
-      customerPhone: values.customerPhone || undefined,
-      parcelType: values.parcelType || undefined,
-      destination: values.destination || undefined,
-      remarks: values.remarks || undefined,
-    })
+    const res = await createAccountBooking(toPayload(values))
     setTrackingLink(res.trackingLink)
+    form.reset(emptyFormValues as any)
+    const accountParty = accountParties.find((p) => p.id === values.accountPartyId)
+    const courierCompany = courierCompanies.find((c) => c.id === values.courierCompanyId)
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            items: [
+              {
+                ...res.booking,
+                accountParty: accountParty ? { id: accountParty.id, name: accountParty.name } : null,
+                courierCompany: courierCompany ? { id: courierCompany.id, name: courierCompany.name } : null,
+              },
+              ...prev.items,
+            ],
+          }
+        : prev,
+    )
+  }
+
+  const onUpdate = async (values: FormValues) => {
+    if (!editing) return
+    setError(null)
+    try {
+      const updated = await updateAccountBooking(editing.id, toPayload(values))
+      setEditing(null)
+      form.reset(emptyFormValues as any)
+      setData((prev) => (prev ? { ...prev, items: prev.items.map((x) => (x.id === updated.id ? updated : x)) } : prev))
+    } catch (e) {
+      setError((e as any)?.response?.data?.message ?? (e as any)?.message ?? 'Failed to update booking')
+    }
+  }
+
+  const startEdit = (row: any) => {
+    setEditing(row)
+    setTrackingLink(null)
     form.reset({
-      accountPartyId: '',
-      customerName: '',
-      customerPhone: '',
-      courierCompanyId: '',
-      courierNumber: '',
-      parcelType: '',
-      destination: '',
-      remarks: '',
+      accountPartyId: row.accountPartyId,
+      customerName: row.customerName,
+      customerPhone: row.customerPhone ?? '',
+      courierCompanyId: row.courierCompanyId,
+      courierNumber: row.courierNumber,
+      parcelType: row.parcelType ?? '',
+      destination: row.destination ?? '',
+      weight: row.weight != null ? Number(row.weight) : undefined,
+      charges: row.charges != null ? Number(row.charges) : undefined,
+      remarks: row.remarks ?? '',
     } as any)
-    setData((prev) => (prev ? { ...prev, items: [res.booking, ...prev.items] } : prev))
+    formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const cancelEdit = () => {
+    setEditing(null)
+    form.reset(emptyFormValues as any)
+  }
+
+  const exportRows = useMemo(() => {
+    return (data?.items ?? []).map((x, i) => ({
+      srNo: serialOffset + i + 1,
+      date: String(x.bookingDate).slice(0, 10),
+      courierNo: x.courierNumber,
+      courierName: x.accountParty?.name ?? '',
+      customerName: x.customerName,
+      mobileNo: x.customerPhone ?? '',
+      destination: x.destination ?? '',
+      weight: x.weight ?? '',
+    }))
+  }, [data?.items, serialOffset])
+
+  const onExport = () => {
+    const base = `account-bookings-${new Date().toISOString().slice(0, 10)}`
+    if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
+    if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'AccountBookings', exportRows)
+    return downloadPdf(`${base}.pdf`, 'Account bookings', exportRows)
   }
 
   return (
@@ -144,9 +226,11 @@ export function AccountBookingPage() {
       )}
       {error && <div className={alertErrorClass}>{error}</div>}
 
-      <div className={cardClass}>
-        <div className="mb-3 text-sm font-medium text-erp-text">New booking</div>
-        <form className={formGridClass} onSubmit={form.handleSubmit(onCreate)}>
+      <div ref={formCardRef} className={cardClass}>
+        <div className="mb-3 text-sm font-medium text-erp-text">
+          {editing ? 'Edit booking' : 'New booking'}
+        </div>
+        <form className={formGridClass} onSubmit={form.handleSubmit(editing ? onUpdate : onCreate)}>
           <div>
             <label className={labelClass}>Account Party *</label>
             <select
@@ -176,20 +260,6 @@ export function AccountBookingPage() {
             </select>
           </div>
           <div>
-            <label className={labelClass}>Customer name *</label>
-            <input
-              className={inputClass}
-              {...form.register('customerName')}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Customer phone</label>
-            <input
-              className={inputClass}
-              {...form.register('customerPhone')}
-            />
-          </div>
-          <div>
             <label className={labelClass}>Courier number *</label>
             <input
               className={inputClass}
@@ -201,6 +271,20 @@ export function AccountBookingPage() {
             <input
               className={inputClass}
               {...form.register('destination')}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Customer name *</label>
+            <input
+              className={inputClass}
+              {...form.register('customerName')}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Customer phone</label>
+            <input
+              className={inputClass}
+              {...form.register('customerPhone')}
             />
           </div>
           <div>
@@ -230,8 +314,13 @@ export function AccountBookingPage() {
           </div>
           <div className={formActionsClass}>
             <button type="submit" disabled={form.formState.isSubmitting} className={btnPrimaryClass}>
-              {form.formState.isSubmitting ? 'Saving…' : 'Save booking'}
+              {form.formState.isSubmitting ? 'Saving…' : editing ? 'Update booking' : 'Save booking'}
             </button>
+            {editing && (
+              <button type="button" className={btnSecondaryClass} onClick={cancelEdit}>
+                Cancel
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -246,53 +335,61 @@ export function AccountBookingPage() {
           placeholder="Search by courier number / customer"
           className={`${inputClass} sm:max-w-md`}
         />
-        <button
-          onClick={() =>
-            downloadCsv(
-              `account-bookings-${new Date().toISOString().slice(0, 10)}.csv`,
-              (data?.items ?? []).map((x) => ({
-                bookingDate: String(x.bookingDate).slice(0, 10),
-                courierNumber: x.courierNumber,
-                customerName: x.customerName,
-                customerPhone: x.customerPhone ?? '',
-                status: x.status,
-              })),
-            )
-          }
-          className={btnSecondaryClass}
+        <select
+          className={`${selectClass} w-full sm:w-[140px]`}
+          value={exportFormat}
+          onChange={(e) => setExportFormat(e.target.value as any)}
         >
-          Export CSV
+          <option value="csv">CSV</option>
+          <option value="excel">EXCEL</option>
+          <option value="pdf">PDF</option>
+        </select>
+        <button onClick={onExport} className={btnSecondaryClass}>
+          Export
         </button>
         <div className={`text-xs ${mutedTextClass}`}>{loading ? 'Loading…' : ' '}</div>
       </div>
 
-      <DataTable minWidth="560px">
+      <DataTable minWidth="1100px">
         <thead>
           <tr>
+            <th>Sr.No</th>
             <th>Date</th>
-            <th>Courier #</th>
-            <th>Customer</th>
-            <th>Status</th>
-            <th className="text-right">Receipt</th>
+            <th>Courier No</th>
+            <th>Courier Name</th>
+            <th>Customer Name</th>
+            <th>Mobile No</th>
+            <th>Destination</th>
+            <th>Weight</th>
+            <th className="text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {(data?.items ?? []).map((row) => (
+          {(data?.items ?? []).map((row, i) => (
             <tr key={row.id}>
+              <td className={textSecondaryClass}>{serialOffset + i + 1}</td>
               <td className={textSecondaryClass}>{String(row.bookingDate).slice(0, 10)}</td>
               <td className="font-medium text-erp-text">{row.courierNumber}</td>
+              <td className={textPrimaryClass}>{row.accountParty?.name ?? '—'}</td>
               <td className={textPrimaryClass}>{row.customerName}</td>
-              <td className={textSecondaryClass}>{row.status}</td>
+              <td className={textSecondaryClass}>{row.customerPhone ?? '—'}</td>
+              <td className={textSecondaryClass}>{row.destination ?? '—'}</td>
+              <td className={textSecondaryClass}>{row.weight ?? '—'}</td>
               <td className="text-right">
-                <button type="button" className={btnTableActionClass} onClick={() => setReceiptRow(row)}>
-                  Print
-                </button>
+                <div className="flex flex-wrap justify-end gap-1">
+                  <button type="button" className={btnTableActionClass} onClick={() => startEdit(row)}>
+                    Edit
+                  </button>
+                  <button type="button" className={btnTableActionClass} onClick={() => setReceiptRow(row)}>
+                    Print
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
           {!loading && (data?.items?.length ?? 0) === 0 && (
             <tr>
-              <td className={emptyCellClass} colSpan={5}>
+              <td className={emptyCellClass} colSpan={9}>
                 No bookings found
               </td>
             </tr>
@@ -301,40 +398,12 @@ export function AccountBookingPage() {
       </DataTable>
 
       {receiptRow && (
-        <ReceiptModal title="Account Booking Receipt" onClose={() => setReceiptRow(null)}>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-base font-semibold text-erp-text">Mahadev Enterprises</div>
-                <div className={`text-xs ${mutedTextClass}`}>Courier Booking Receipt</div>
-              </div>
-              <div className={`text-right text-xs ${mutedTextClass}`}>
-                Date: {String(receiptRow.bookingDate).slice(0, 10)}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <div className={receiptCellClass}>
-                <div className={`text-xs ${mutedTextClass}`}>Courier Number</div>
-                <div className="font-medium text-erp-text">{receiptRow.courierNumber}</div>
-              </div>
-              <div className={receiptCellClass}>
-                <div className={`text-xs ${mutedTextClass}`}>Customer</div>
-                <div className="font-medium text-erp-text">{receiptRow.customerName}</div>
-                {receiptRow.customerPhone && <div className={`text-xs ${mutedTextClass}`}>{receiptRow.customerPhone}</div>}
-              </div>
-              <div className={receiptCellClass}>
-                <div className={`text-xs ${mutedTextClass}`}>Status</div>
-                <div className="font-medium text-erp-text">{receiptRow.status}</div>
-              </div>
-              <div className={receiptCellClass}>
-                <div className={`text-xs ${mutedTextClass}`}>Remarks</div>
-                <div className="font-medium text-erp-text">{receiptRow.remarks ?? '—'}</div>
-              </div>
-            </div>
-            <div className={`text-xs ${mutedTextClass}`}>
-              Note: Tracking link is shown after saving if courier company has a template.
-            </div>
-          </div>
+        <ReceiptModal
+          title="Consignment label"
+          panelClassName="max-w-4xl"
+          onClose={() => setReceiptRow(null)}
+        >
+          <ConsignmentLabel data={accountBookingToConsignmentLabel(receiptRow)} />
         </ReceiptModal>
       )}
 

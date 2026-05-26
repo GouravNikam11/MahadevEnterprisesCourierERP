@@ -31,8 +31,10 @@ import {
   labelClass,
   pageClass,
   toolbarClass,
+  selectClass,
 } from '../../components/layout/uiClasses'
 import { downloadCsv } from '../../utils/csv'
+import { downloadExcel, downloadPdf } from '../../utils/export'
 
 const schema = z.object({
   name: z.string().min(2),
@@ -50,6 +52,23 @@ export function CourierCompanyPage() {
   const [error, setError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [editing, setEditing] = useState<CourierCompany | null>(null)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
+
+  const exportRows = useMemo(() => {
+    return (data?.items ?? []).map((x) => ({
+      name: x.name,
+      trackingUrl: x.trackingUrl ?? '',
+      supportPhone: x.supportPhone ?? '',
+      isActive: x.isActive,
+    }))
+  }, [data?.items])
+
+  const onExport = () => {
+    const base = `courier-companies-${new Date().toISOString().slice(0, 10)}`
+    if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
+    if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'CourierCompanies', exportRows)
+    return downloadPdf(`${base}.pdf`, 'Courier companies', exportRows)
+  }
 
   const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize: 10 }), [q, page])
   const form = useForm<any>({
@@ -133,22 +152,17 @@ export function CourierCompanyPage() {
         subtitle="Tracking URL templates and company status"
         actions={
           <>
-            <button
-              type="button"
-              onClick={() =>
-                downloadCsv(
-                  `courier-companies-${new Date().toISOString().slice(0, 10)}.csv`,
-                  (data?.items ?? []).map((x) => ({
-                    name: x.name,
-                    trackingUrl: x.trackingUrl ?? '',
-                    supportPhone: x.supportPhone ?? '',
-                    isActive: x.isActive,
-                  })),
-                )
-              }
-              className={btnSecondaryClass}
+            <select
+              className={`${selectClass} w-full sm:w-[140px]`}
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value as any)}
             >
-              Export CSV
+              <option value="csv">CSV</option>
+              <option value="excel">EXCEL</option>
+              <option value="pdf">PDF</option>
+            </select>
+            <button type="button" onClick={onExport} className={btnSecondaryClass}>
+              Export
             </button>
             <button type="button" onClick={() => setShowCreate((v) => !v)} className={btnPrimaryClass}>
               Add Company

@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createPincode, deletePincode, listPincodes, updatePincode, type Pincode } from '../../services/mastersApi'
 import { downloadCsv } from '../../utils/csv'
+import { downloadExcel, downloadPdf } from '../../utils/export'
 
 const schema = z.object({
   areaName: z.string().min(2),
@@ -22,6 +23,24 @@ export function PincodeMasterPage() {
   const [error, setError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [editing, setEditing] = useState<Pincode | null>(null)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
+
+  const exportRows = useMemo(() => {
+    return (data?.items ?? []).map((x) => ({
+      pincode: x.pincode,
+      areaName: x.areaName,
+      city: x.city ?? '',
+      state: x.state ?? '',
+      isActive: x.isActive,
+    }))
+  }, [data?.items])
+
+  const onExport = () => {
+    const base = `pincodes-${new Date().toISOString().slice(0, 10)}`
+    if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
+    if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'Pincodes', exportRows)
+    return downloadPdf(`${base}.pdf`, 'Pincodes', exportRows)
+  }
 
   const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize: 10 }), [q, page])
   const form = useForm<any>({
@@ -108,23 +127,18 @@ export function PincodeMasterPage() {
           <div className="erp-page-title">Area & Pincode Master</div>
           <div className="erp-muted">Searchable pincodes for cash bookings</div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() =>
-              downloadCsv(
-                `pincodes-${new Date().toISOString().slice(0, 10)}.csv`,
-                (data?.items ?? []).map((x) => ({
-                  pincode: x.pincode,
-                  areaName: x.areaName,
-                  city: x.city ?? '',
-                  state: x.state ?? '',
-                  isActive: x.isActive,
-                })),
-              )
-            }
-            className="erp-btn-secondary"
+        <div className="flex flex-wrap gap-2">
+          <select
+            className="erp-input w-full sm:w-[140px]"
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value as any)}
           >
-            Export CSV
+            <option value="csv">CSV</option>
+            <option value="excel">EXCEL</option>
+            <option value="pdf">PDF</option>
+          </select>
+          <button onClick={onExport} className="erp-btn-secondary">
+            Export
           </button>
           <button
             onClick={() => setShowCreate((v) => !v)}

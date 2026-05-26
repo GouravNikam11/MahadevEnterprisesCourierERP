@@ -1,7 +1,12 @@
 import { useEffect } from 'react'
 import { btnPrimaryClass, btnSecondaryClass } from './layout/uiClasses'
 
-export function ReceiptModal(props: { title: string; onClose: () => void; children: React.ReactNode }) {
+export function ReceiptModal(props: {
+  title: string
+  onClose: () => void
+  children: React.ReactNode
+  panelClassName?: string
+}) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') props.onClose()
@@ -12,7 +17,12 @@ export function ReceiptModal(props: { title: string; onClose: () => void; childr
 
   return (
     <div className="erp-modal-overlay" onMouseDown={props.onClose} role="presentation">
-      <div className="erp-modal-panel" onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        className={`erp-modal-panel erp-modal-panel-print ${props.panelClassName ?? ''}`}
+        onMouseDown={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="erp-modal-header">
           <div className="text-sm font-medium text-erp-text">{props.title}</div>
           <button type="button" className={btnSecondaryClass + ' !min-h-[32px] !w-auto !px-2 !py-1 !text-xs'} onClick={props.onClose}>

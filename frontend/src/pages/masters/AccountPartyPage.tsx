@@ -31,8 +31,10 @@ import {
   labelClass,
   pageClass,
   toolbarClass,
+  selectClass,
 } from '../../components/layout/uiClasses'
 import { downloadCsv } from '../../utils/csv'
+import { downloadExcel, downloadPdf } from '../../utils/export'
 
 const schema = z.object({
   name: z.string().min(2),
@@ -55,6 +57,25 @@ export function AccountPartyPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [editing, setEditing] = useState<AccountParty | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
+
+  const exportRows = useMemo(() => {
+    return (data?.items ?? []).map((x) => ({
+      name: x.name,
+      phone: x.phone ?? '',
+      gstNumber: x.gstNumber ?? '',
+      state: x.state ?? '',
+      rate: x.rate ?? '',
+      isActive: x.isActive,
+    }))
+  }, [data?.items])
+
+  const onExport = () => {
+    const base = `account-parties-${new Date().toISOString().slice(0, 10)}`
+    if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
+    if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'AccountParties', exportRows)
+    return downloadPdf(`${base}.pdf`, 'Account parties', exportRows)
+  }
 
   const form = useForm<any>({
     resolver: zodResolver(schema) as any,
@@ -148,24 +169,17 @@ export function AccountPartyPage() {
         subtitle="Manage account customers (rates, GST, contact)"
         actions={
           <>
-            <button
-              type="button"
-              onClick={() =>
-                downloadCsv(
-                  `account-parties-${new Date().toISOString().slice(0, 10)}.csv`,
-                  (data?.items ?? []).map((x) => ({
-                    name: x.name,
-                    phone: x.phone ?? '',
-                    gstNumber: x.gstNumber ?? '',
-                    state: x.state ?? '',
-                    rate: x.rate ?? '',
-                    isActive: x.isActive,
-                  })),
-                )
-              }
-              className={btnSecondaryClass}
+            <select
+              className={`${selectClass} w-full sm:w-[140px]`}
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value as any)}
             >
-              Export CSV
+              <option value="csv">CSV</option>
+              <option value="excel">EXCEL</option>
+              <option value="pdf">PDF</option>
+            </select>
+            <button type="button" onClick={onExport} className={btnSecondaryClass}>
+              Export
             </button>
             <button type="button" onClick={() => setShowCreate((v) => !v)} className={btnPrimaryClass}>
               Add Party

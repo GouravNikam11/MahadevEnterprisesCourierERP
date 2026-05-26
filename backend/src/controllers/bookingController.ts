@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma'
 import { fail, ok } from '../utils/response'
 import {
   accountBookingCreateSchema,
+  accountBookingUpdateSchema,
   bookingListQuerySchema,
   cashBookingCreateSchema,
 } from '../validators/booking'
@@ -76,6 +77,36 @@ export async function createAccountBooking(req: Request, res: Response) {
       trackingLink,
     }),
   )
+}
+
+export async function updateAccountBooking(req: Request, res: Response) {
+  const parsed = accountBookingUpdateSchema.safeParse(req.body)
+  if (!parsed.success) return res.status(400).json(fail('Validation failed', parsed.error.flatten()))
+  const d = parsed.data
+  const id = String(req.params.id)
+
+  const existing = await prisma.accountBooking.findFirst({ where: { id, deletedAt: null } })
+  if (!existing) return res.status(404).json(fail('Booking not found'))
+
+  const item = await prisma.accountBooking.update({
+    where: { id },
+    data: {
+      ...(d.bookingDate != null ? { bookingDate: d.bookingDate } : {}),
+      accountPartyId: d.accountPartyId,
+      customerName: d.customerName,
+      customerPhone: d.customerPhone || null,
+      courierCompanyId: d.courierCompanyId,
+      courierNumber: d.courierNumber,
+      parcelType: d.parcelType || null,
+      destination: d.destination || null,
+      weight: d.weight != null ? String(d.weight) : null,
+      charges: d.charges != null ? String(d.charges) : null,
+      remarks: d.remarks || null,
+    } as any,
+    include: { accountParty: true, courierCompany: true },
+  })
+
+  return res.json(ok('Updated', { booking: item }))
 }
 
 export async function listCashBookings(req: Request, res: Response) {

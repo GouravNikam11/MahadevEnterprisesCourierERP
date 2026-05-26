@@ -11,6 +11,7 @@ import {
 } from '../../services/lookupApi'
 import { ReceiptModal } from '../../components/ReceiptModal'
 import { downloadCsv } from '../../utils/csv'
+import { downloadExcel, downloadPdf } from '../../utils/export'
 
 const schema = z.object({
   fromName: z.string().min(2),
@@ -34,6 +35,7 @@ export function CashBookingPage() {
   const [error, setError] = useState<string | null>(null)
   const [trackingLink, setTrackingLink] = useState<string | null>(null)
   const [receiptRow, setReceiptRow] = useState<any | null>(null)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
 
   const [courierCompanies, setCourierCompanies] = useState<LookupItem[]>([])
   const [pincodes, setPincodes] = useState<PincodeLookupItem[]>([])
@@ -61,6 +63,24 @@ export function CashBookingPage() {
   }, [])
 
   const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize: 10 }), [q, page])
+
+  const exportRows = useMemo(() => {
+    return (data?.items ?? []).map((x) => ({
+      date: String(x.bookingDate).slice(0, 10),
+      courierNo: x.courierNumber,
+      fromName: x.fromName,
+      toName: x.toName,
+      mobileNo: x.mobileNumber ?? '',
+      status: x.status,
+    }))
+  }, [data?.items])
+
+  const onExport = () => {
+    const base = `cash-bookings-${new Date().toISOString().slice(0, 10)}`
+    if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
+    if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'CashBookings', exportRows)
+    return downloadPdf(`${base}.pdf`, 'Cash bookings', exportRows)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -236,23 +256,17 @@ export function CashBookingPage() {
           placeholder="Search by courier number / names"
           className="erp-input sm:max-w-md"
         />
-        <button
-          onClick={() =>
-            downloadCsv(
-              `cash-bookings-${new Date().toISOString().slice(0, 10)}.csv`,
-              (data?.items ?? []).map((x) => ({
-                bookingDate: String(x.bookingDate).slice(0, 10),
-                courierNumber: x.courierNumber,
-                fromName: x.fromName,
-                toName: x.toName,
-                mobileNumber: x.mobileNumber ?? '',
-                status: x.status,
-              })),
-            )
-          }
-          className="erp-btn-secondary"
+        <select
+          className="erp-input w-full sm:w-[140px]"
+          value={exportFormat}
+          onChange={(e) => setExportFormat(e.target.value as any)}
         >
-          Export CSV
+          <option value="csv">CSV</option>
+          <option value="excel">EXCEL</option>
+          <option value="pdf">PDF</option>
+        </select>
+        <button onClick={onExport} className="erp-btn-secondary">
+          Export
         </button>
         <div className="text-xs erp-muted">{loading ? 'Loading…' : ' '}</div>
       </div>

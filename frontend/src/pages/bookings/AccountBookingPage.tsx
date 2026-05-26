@@ -46,6 +46,12 @@ const schema = z.object({
 })
 type FormValues = z.infer<typeof schema>
 
+function optionalNumber(v: unknown) {
+  if (v === '' || v == null) return undefined
+  const n = Number(v)
+  return Number.isNaN(n) ? undefined : n
+}
+
 export function AccountBookingPage() {
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
@@ -74,6 +80,8 @@ export function AccountBookingPage() {
       courierNumber: '',
       parcelType: '',
       destination: '',
+      weight: '',
+      charges: '',
       remarks: '',
     } as any,
   })
@@ -117,6 +125,8 @@ export function AccountBookingPage() {
     courierNumber: '',
     parcelType: '',
     destination: '',
+    weight: '',
+    charges: '',
     remarks: '',
   } as const
 
@@ -125,6 +135,8 @@ export function AccountBookingPage() {
     customerPhone: values.customerPhone || undefined,
     parcelType: values.parcelType || undefined,
     destination: values.destination || undefined,
+    weight: optionalNumber(values.weight),
+    charges: optionalNumber(values.charges),
     remarks: values.remarks || undefined,
   })
 

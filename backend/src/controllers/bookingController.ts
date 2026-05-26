@@ -86,7 +86,7 @@ export async function updateAccountBooking(req: Request, res: Response) {
   const id = String(req.params.id)
 
   const existing = await prisma.accountBooking.findFirst({ where: { id, deletedAt: null } })
-  if (!existing) return res.status(404).json(fail('Booking not found'))
+  if (!existing) return res.status(404).json(fail('Booking not found', { code: 'NOT_FOUND' }))
 
   const item = await prisma.accountBooking.update({
     where: { id },

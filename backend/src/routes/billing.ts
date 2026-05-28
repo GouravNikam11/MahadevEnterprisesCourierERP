@@ -1,6 +1,15 @@
 import { Router } from 'express'
 import { requireAuth, requireRole } from '../middleware/auth'
-import { generateInvoice, getInvoice, listInvoices, previewBilling } from '../controllers/billingController'
+import {
+  deleteInvoice,
+  deleteInvoiceItem,
+  generateInvoice,
+  getInvoice,
+  listInvoices,
+  previewBilling,
+  updateInvoice,
+  updateInvoiceItem,
+} from '../controllers/billingController'
 
 export const billingRouter = Router()
 
@@ -11,4 +20,9 @@ billingRouter.get('/billing/preview', previewBilling)
 billingRouter.post('/billing/invoices', generateInvoice)
 billingRouter.get('/billing/invoices', listInvoices)
 billingRouter.get('/billing/invoices/:id', getInvoice)
+billingRouter.put('/billing/invoices/:id', updateInvoice)
+billingRouter.delete('/billing/invoices/:id', deleteInvoice)
+
+billingRouter.put('/billing/invoices/:id/items/:itemId', updateInvoiceItem)
+billingRouter.delete('/billing/invoices/:id/items/:itemId', deleteInvoiceItem)
 

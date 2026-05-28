@@ -17,7 +17,8 @@ export async function downloadPdfFromElement(filename: string, el: HTMLElement) 
 
   const canvas = await html2canvas(el, {
     backgroundColor: '#ffffff',
-    scale: 3, // better text quality
+    // Too high a scale can cause anti-aliased borders to look "double" when downscaled in PDF.
+    scale: 2,
     useCORS: true,
     logging: false,
     windowWidth: el.scrollWidth,
@@ -39,6 +40,8 @@ export async function downloadPdfFromElement(filename: string, el: HTMLElement) 
     pageCanvas.height = sh
     const ctx = pageCanvas.getContext('2d')
     if (!ctx) return null
+    // Keep borders crisp (avoid smoothing that can produce "double" lines)
+    ctx.imageSmoothingEnabled = false
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height)
     ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh)
@@ -56,7 +59,8 @@ export async function downloadPdfFromElement(filename: string, el: HTMLElement) 
     const sliceHeightPt = sh * scalePtPerPx
 
     if (pageIndex > 0) pdf.addPage()
-    pdf.addImage(imgData, 'PNG', margin, margin, contentWidthPt, sliceHeightPt, undefined, 'FAST')
+    // Lossless embedding keeps thin borders cleaner
+    pdf.addImage(imgData, 'PNG', margin, margin, contentWidthPt, sliceHeightPt, undefined, 'NONE')
 
     sy += sh
     pageIndex += 1

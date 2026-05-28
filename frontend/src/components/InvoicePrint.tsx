@@ -1,3 +1,5 @@
+import { amountToWordsINR } from '../utils/amountWords'
+
 export type InvoicePrintParty = {
   name?: string | null
   address?: string | null
@@ -29,6 +31,9 @@ export type InvoicePrintData = {
   party: InvoicePrintParty
   billMonthLabel?: string
   rows: InvoicePrintRow[]
+  remark?: string
+  cgstPct?: number
+  sgstPct?: number
   subtotal?: string | number
   total?: string | number
 }
@@ -42,7 +47,26 @@ function fmtDate(d: string | Date) {
   return String(d).slice(0, 10)
 }
 
+function toNum(v: any) {
+  const n = Number(v)
+  return Number.isFinite(n) ? n : 0
+}
+
+function fmtMoney(n: number) {
+  return n.toFixed(2)
+}
+
 export function InvoicePrint({ data }: { data: InvoicePrintData }) {
+  const subtotal = toNum(data.subtotal)
+  const cgstPct = data.cgstPct ?? 9
+  const sgstPct = data.sgstPct ?? 9
+  const cgst = (subtotal * cgstPct) / 100
+  const sgst = (subtotal * sgstPct) / 100
+  const gross = subtotal + cgst + sgst
+  const rounded = Math.round(gross)
+  const roundOff = rounded - gross
+  const net = gross + roundOff
+
   return (
     <div className="invoice-print bg-white text-black">
       <div className="invoice-box">
@@ -122,14 +146,41 @@ export function InvoicePrint({ data }: { data: InvoicePrintData }) {
           </tbody>
         </table>
 
-        <div className="invoice-totals">
-          <div className="invoice-total-line">
-            <span>SUBTOTAL</span>
-            <span className="invoice-total-v">{cell(data.subtotal)}</span>
+        <div className="invoice-footer">
+          <div className="invoice-footer-left">
+            <div className="invoice-words">{amountToWordsINR(net)}</div>
+            <div className="invoice-remark">
+              <div className="invoice-remark-k">REMARK :-</div>
+              <div className="invoice-remark-v">{data.remark?.trim() ? data.remark : '\u00a0'}</div>
+            </div>
           </div>
-          <div className="invoice-total-line invoice-total-strong">
-            <span>TOTAL</span>
-            <span className="invoice-total-v">{cell(data.total)}</span>
+          <div className="invoice-footer-right">
+            <div className="invoice-summary">
+              <div className="invoice-summary-row">
+                <div className="k">GRAND TOTAL</div>
+                <div className="v">{fmtMoney(subtotal)}</div>
+              </div>
+              <div className="invoice-summary-row">
+                <div className="k">CGST {cgstPct} %</div>
+                <div className="v">{fmtMoney(cgst)}</div>
+              </div>
+              <div className="invoice-summary-row">
+                <div className="k">SGST {sgstPct} %</div>
+                <div className="v">{fmtMoney(sgst)}</div>
+              </div>
+              <div className="invoice-summary-row">
+                <div className="k">ROUND OFF</div>
+                <div className="v">{fmtMoney(roundOff)}</div>
+              </div>
+              <div className="invoice-summary-row invoice-summary-strong">
+                <div className="k">TOTAL</div>
+                <div className="v">{fmtMoney(net)}</div>
+              </div>
+            </div>
+            <div className="invoice-for">
+              <div>FOR,</div>
+              <div className="invoice-for-name">{data.companyName}</div>
+            </div>
           </div>
         </div>
       </div>

@@ -259,6 +259,12 @@ model Invoice {
   notes      String?
   status     InvoiceStatus @default(GENERATED)
 
+  cgstPct   Decimal @default(9) @map("cgst_pct")
+  sgstPct   Decimal @default(9) @map("sgst_pct")
+  cgstAmount Decimal @default(0) @map("cgst_amount")
+  sgstAmount Decimal @default(0) @map("sgst_amount")
+  roundOff  Decimal @default(0) @map("round_off")
+
   subtotal Decimal @default(0)
   total    Decimal @default(0)
 

@@ -46,9 +46,25 @@ function toAoa(data: InvoicePrintData) {
     ])
   })
 
+  // Footer (matching print intent)
+  const subtotal = Number(data.subtotal ?? 0) || 0
+  const cgstPct = data.cgstPct ?? 9
+  const sgstPct = data.sgstPct ?? 9
+  const cgst = (subtotal * cgstPct) / 100
+  const sgst = (subtotal * sgstPct) / 100
+  const gross = subtotal + cgst + sgst
+  const rounded = Math.round(gross)
+  const roundOff = rounded - gross
+  const net = gross + roundOff
+
   aoa.push([])
-  aoa.push(['', '', '', '', '', '', 'SUBTOTAL', data.subtotal ?? ''])
-  aoa.push(['', '', '', '', '', '', 'TOTAL', data.total ?? ''])
+  aoa.push(['', '', '', '', '', '', 'GRAND TOTAL', subtotal.toFixed(2)])
+  aoa.push(['', '', '', '', '', '', `CGST ${cgstPct} %`, cgst.toFixed(2)])
+  aoa.push(['', '', '', '', '', '', `SGST ${sgstPct} %`, sgst.toFixed(2)])
+  aoa.push(['', '', '', '', '', '', 'ROUND OFF', roundOff.toFixed(2)])
+  aoa.push(['', '', '', '', '', '', 'TOTAL', net.toFixed(2)])
+  aoa.push([])
+  aoa.push([data.remark ? `REMARK :- ${data.remark}` : ''])
 
   return aoa
 }

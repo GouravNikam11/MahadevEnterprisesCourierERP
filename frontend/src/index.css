@@ -359,6 +359,10 @@ body {
   font-weight: 700;
 }
 
+.invoice-company-meta > div {
+  text-align: center;
+}
+
 .invoice-top-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -453,4 +457,130 @@ body {
 .invoice-total-v {
   min-width: 90px;
   text-align: right;
+}
+
+.invoice-footer {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 0;
+  border-top: 1px solid #000;
+}
+
+.invoice-footer-left {
+  padding: 10px 12px;
+  border-right: 1px solid #000;
+  min-height: 120px;
+}
+
+.invoice-words {
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #000;
+}
+
+.invoice-remark {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 8px;
+  padding-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.invoice-remark-k {
+  font-weight: 900;
+}
+
+.invoice-remark-v {
+  font-weight: 700;
+  min-height: 28px;
+}
+
+.invoice-footer-right {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.invoice-summary {
+  width: 100%;
+  border-bottom: 1px solid #000;
+}
+
+.invoice-summary-row {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  border-top: 1px solid #000;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.invoice-summary-row:first-child {
+  border-top: none;
+}
+
+.invoice-summary-row .k {
+  padding: 6px 8px;
+  text-align: right;
+}
+
+.invoice-summary-row .v {
+  padding: 6px 8px;
+  text-align: right;
+  border-left: 1px solid #000;
+}
+
+.invoice-summary-strong {
+  font-weight: 900;
+}
+
+.invoice-for {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.invoice-for-name {
+  margin-top: 32px;
+  text-align: center;
+  font-weight: 900;
+}
+
+/* PDF export tweaks (html2canvas rasterization can make borders look "double") */
+.pdf-export .invoice-box {
+  border-width: 1px;
+}
+.pdf-export .invoice-company {
+  border-bottom-width: 1px;
+}
+.pdf-export .invoice-company-meta {
+  border-top-width: 1px;
+}
+.pdf-export .invoice-top-grid {
+  border-bottom-width: 1px;
+}
+.pdf-export .invoice-party {
+  border-right-width: 1px;
+}
+.pdf-export .invoice-period-title {
+  border-bottom-width: 1px;
+}
+.pdf-export .invoice-table th,
+.pdf-export .invoice-table td {
+  border-width: 0.8px;
+}
+.pdf-export .invoice-totals {
+  border-top-width: 1px;
+}
+.pdf-export .invoice-footer-left {
+  border-right-width: 0.8px;
+}
+.pdf-export .invoice-words {
+  border-bottom-width: 0.8px;
+}
+.pdf-export .invoice-summary-row .v {
+  border-left-width: 0.8px;
 }

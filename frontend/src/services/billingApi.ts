@@ -23,7 +23,16 @@ export async function previewBilling(accountPartyId: string, from: string, to: s
   return (res.data as any).data as BillingPreviewResponse
 }
 
-export async function generateInvoice(payload: { accountPartyId: string; from: string; to: string; sacCode?: string; notes?: string }) {
+export async function generateInvoice(payload: {
+  accountPartyId: string
+  from: string
+  to: string
+  sacCode?: string
+  notes?: string
+  cgstPct?: number
+  sgstPct?: number
+  items?: any[]
+}) {
   const res = await api.post('/billing/invoices', payload)
   return (res.data as any).data as { invoice: any }
 }
@@ -36,5 +45,25 @@ export async function listInvoices(params?: { accountPartyId?: string }) {
 export async function getInvoice(id: string) {
   const res = await api.get(`/billing/invoices/${id}`)
   return (res.data as any).data as { invoice: any }
+}
+
+export async function updateInvoice(id: string, payload: { sacCode?: string; notes?: string; cgstPct?: number; sgstPct?: number }) {
+  const res = await api.put(`/billing/invoices/${id}`, payload)
+  return (res.data as any).data as { invoice: any }
+}
+
+export async function deleteInvoice(id: string) {
+  const res = await api.delete(`/billing/invoices/${id}`)
+  return (res.data as any).data as { id: string }
+}
+
+export async function updateInvoiceItem(invoiceId: string, itemId: string, payload: any) {
+  const res = await api.put(`/billing/invoices/${invoiceId}/items/${itemId}`, payload)
+  return (res.data as any).data as { item: any; invoice: any }
+}
+
+export async function deleteInvoiceItem(invoiceId: string, itemId: string) {
+  const res = await api.delete(`/billing/invoices/${invoiceId}/items/${itemId}`)
+  return (res.data as any).data as { id: string; invoice: any }
 }
 

@@ -220,7 +220,9 @@ export function BillingPage() {
             position: 'fixed',
             left: -10000,
             top: 0,
-            width: 900,
+            // Render at an A4-ish width so the PDF is crisp and well-proportioned.
+            // (A4 at 96dpi ≈ 794px wide)
+            width: 794,
             background: 'white',
             padding: 0,
           }}

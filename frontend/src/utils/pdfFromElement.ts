@@ -17,36 +17,49 @@ export async function downloadPdfFromElement(filename: string, el: HTMLElement) 
 
   const canvas = await html2canvas(el, {
     backgroundColor: '#ffffff',
-    scale: 2, // better text quality
+    scale: 3, // better text quality
     useCORS: true,
     logging: false,
     windowWidth: el.scrollWidth,
     windowHeight: el.scrollHeight,
   })
 
-  const imgData = canvas.toDataURL('image/png')
-
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' })
-
   const pageWidth = pdf.internal.pageSize.getWidth()
   const pageHeight = pdf.internal.pageSize.getHeight()
+  const margin = 24
 
-  const imgWidth = pageWidth
-  const imgHeight = (canvas.height * imgWidth) / canvas.width
+  const contentWidthPt = pageWidth - margin * 2
+  const scalePtPerPx = contentWidthPt / canvas.width
+  const pageContentHeightPx = Math.floor((pageHeight - margin * 2) / scalePtPerPx)
 
-  let y = 0
-  let remaining = imgHeight
+  const makeSlice = (sy: number, sh: number) => {
+    const pageCanvas = document.createElement('canvas')
+    pageCanvas.width = canvas.width
+    pageCanvas.height = sh
+    const ctx = pageCanvas.getContext('2d')
+    if (!ctx) return null
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height)
+    ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh)
+    return pageCanvas
+  }
 
-  // Draw first page
-  pdf.addImage(imgData, 'PNG', 0, y, imgWidth, imgHeight)
-  remaining -= pageHeight
+  let sy = 0
+  let pageIndex = 0
+  while (sy < canvas.height) {
+    const sh = Math.min(pageContentHeightPx, canvas.height - sy)
+    const slice = makeSlice(sy, sh)
+    if (!slice) break
 
-  // If content is taller than a page, add pages and shift image up.
-  while (remaining > 0) {
-    pdf.addPage()
-    y -= pageHeight
-    pdf.addImage(imgData, 'PNG', 0, y, imgWidth, imgHeight)
-    remaining -= pageHeight
+    const imgData = slice.toDataURL('image/png')
+    const sliceHeightPt = sh * scalePtPerPx
+
+    if (pageIndex > 0) pdf.addPage()
+    pdf.addImage(imgData, 'PNG', margin, margin, contentWidthPt, sliceHeightPt, undefined, 'FAST')
+
+    sy += sh
+    pageIndex += 1
   }
 
   pdf.save(filename)

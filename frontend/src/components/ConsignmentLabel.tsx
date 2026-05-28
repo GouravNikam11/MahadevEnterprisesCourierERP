@@ -18,6 +18,7 @@ export type ConsignmentLabelData = {
   contents?: string | null
   value?: string | number | null
   weight?: string | number | null
+  weightUnit?: string | null
   trackingUrl?: string | null
 }
 
@@ -28,6 +29,11 @@ function formatDate(d: string | Date) {
 function formatCell(v: string | number | null | undefined) {
   if (v == null || v === '') return '\u00a0'
   return String(v)
+}
+
+function formatWeight(weight: string | number | null | undefined, unit: string | null | undefined) {
+  if (weight == null || weight === '') return '\u00a0'
+  return `${weight} ${unit ?? 'KG'}`
 }
 
 function AddressBlock(props: { label: string; lines: string[] }) {
@@ -102,7 +108,7 @@ export function ConsignmentLabel({ data }: { data: ConsignmentLabelData }) {
         <tr>
           <td className="consignment-label-cell text-center">{formatCell(data.contents)}</td>
           <td className="consignment-label-cell text-center">{formatCell(data.value)}</td>
-          <td className="consignment-label-cell text-center">{formatCell(data.weight)}</td>
+          <td className="consignment-label-cell text-center">{formatWeight(data.weight, data.weightUnit)}</td>
           <td className="consignment-label-cell break-all px-2 py-3 text-center text-xs leading-snug" colSpan={2}>
             {data.trackingUrl ? (
               <span className="print:text-black">{data.trackingUrl}</span>
@@ -124,6 +130,7 @@ export function accountBookingToConsignmentLabel(row: {
   customerPhone?: string | null
   parcelType?: string | null
   weight?: string | number | null
+  weightUnit?: string | null
   charges?: string | number | null
   accountParty?: { name?: string; address?: string | null; phone?: string | null } | null
   courierCompany?: { trackingUrl?: string | null } | null
@@ -141,6 +148,7 @@ export function accountBookingToConsignmentLabel(row: {
     contents: row.parcelType,
     value: row.charges,
     weight: row.weight,
+    weightUnit: row.weightUnit ?? 'KG',
     trackingUrl: buildTrackingLink(row.courierCompany?.trackingUrl, row.courierNumber),
   }
 }

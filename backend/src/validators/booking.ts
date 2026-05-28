@@ -19,6 +19,7 @@ export const accountBookingCreateSchema = z.object({
   parcelType: z.string().optional().or(z.literal('')),
   destination: z.string().optional().or(z.literal('')),
   weight: z.coerce.number().nonnegative().optional(),
+  weightUnit: z.enum(['KG', 'GM']).optional().default('KG'),
   charges: z.coerce.number().nonnegative().optional(),
   remarks: z.string().optional().or(z.literal('')),
 })
@@ -35,6 +36,7 @@ export const cashBookingCreateSchema = z.object({
   courierCompanyId: z.string().uuid(),
   courierNumber: z.string().min(3),
   weight: z.coerce.number().nonnegative().optional(),
+  weightUnit: z.enum(['KG', 'GM']).optional().default('KG'),
   amount: z.coerce.number().nonnegative().optional(),
   remarks: z.string().optional().or(z.literal('')),
 })

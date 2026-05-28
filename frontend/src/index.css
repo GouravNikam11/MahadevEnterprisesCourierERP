@@ -318,3 +318,139 @@ body {
     font-size: 10pt;
   }
 }
+
+.invoice-print {
+  width: 100%;
+}
+
+.invoice-box {
+  border: 3px solid #000;
+  padding: 0;
+}
+
+.invoice-company {
+  border-bottom: 3px solid #000;
+}
+
+.invoice-company-title {
+  background: #000;
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 10px 12px;
+  font-size: 22px;
+}
+
+.invoice-company-sub {
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 12px;
+  font-weight: 600;
+}
+
+.invoice-company-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  border-top: 3px solid #000;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.invoice-top-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 3px solid #000;
+}
+
+.invoice-party {
+  padding: 10px 12px;
+  border-right: 3px solid #000;
+}
+
+.invoice-label {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.invoice-party-line {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.invoice-meta {
+  padding: 10px 12px;
+}
+
+.invoice-meta-line {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.invoice-meta-k {
+  font-weight: 800;
+}
+
+.invoice-period-title {
+  text-align: center;
+  font-weight: 800;
+  padding: 8px 12px;
+  border-bottom: 3px solid #000;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.invoice-table th,
+.invoice-table td {
+  border: 2px solid #000;
+  padding: 4px 6px;
+  vertical-align: top;
+}
+
+.invoice-table th {
+  text-align: center;
+  font-weight: 800;
+}
+
+.t-center {
+  text-align: center;
+}
+
+.t-right {
+  text-align: right;
+}
+
+.invoice-totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 10px 12px;
+  border-top: 3px solid #000;
+}
+
+.invoice-total-line {
+  width: 260px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.invoice-total-strong {
+  font-weight: 900;
+}
+
+.invoice-total-v {
+  min-width: 90px;
+  text-align: right;
+}

@@ -22,6 +22,7 @@ const schema = z.object({
   courierCompanyId: z.string().uuid(),
   courierNumber: z.string().min(3),
   weight: z.coerce.number().nonnegative().optional(),
+  weightUnit: z.enum(['KG', 'GM']).optional().default('KG'),
   amount: z.coerce.number().nonnegative().optional(),
   remarks: z.string().optional().or(z.literal('')),
 })
@@ -51,6 +52,7 @@ export function CashBookingPage() {
       pincodeId: '',
       courierCompanyId: '',
       courierNumber: '',
+      weightUnit: 'KG',
       remarks: '',
     } as any,
   })
@@ -126,6 +128,7 @@ export function CashBookingPage() {
       location: values.location || undefined,
       pincodeId: values.pincodeId || undefined,
       remarks: values.remarks || undefined,
+      weightUnit: values.weightUnit ?? 'KG',
     })
     setTrackingLink(res.trackingLink)
     form.reset({
@@ -136,6 +139,7 @@ export function CashBookingPage() {
       pincodeId: '',
       courierCompanyId: '',
       courierNumber: '',
+      weightUnit: 'KG',
       remarks: '',
     } as any)
     setData((prev) => (prev ? { ...prev, items: [res.booking, ...prev.items] } : prev))
@@ -224,7 +228,13 @@ export function CashBookingPage() {
           </div>
           <div>
             <label className="erp-label">Weight</label>
-            <input type="number" step="0.01" className="erp-input" {...form.register('weight')} />
+            <div className="flex gap-2">
+              <input type="number" step="0.01" className="erp-input" {...form.register('weight')} />
+              <select className="erp-input w-[110px]" {...form.register('weightUnit')}>
+                <option value="KG">KG</option>
+                <option value="GM">GM</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className="erp-label">Amount</label>

@@ -26,6 +26,11 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
+DO $$ BEGIN
+  CREATE TYPE invoice_status AS ENUM ('DRAFT', 'GENERATED', 'CANCELLED');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
 -- Masters / Auth
 CREATE TABLE IF NOT EXISTS roles (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -123,6 +128,7 @@ CREATE TABLE IF NOT EXISTS account_bookings (
   parcel_type       text,
   destination       text,
   weight            numeric(12,3),
+  weight_unit       text NOT NULL DEFAULT 'KG',
   charges           numeric(12,2),
   status            booking_status NOT NULL DEFAULT 'BOOKED',
   remarks           text,
@@ -145,6 +151,7 @@ CREATE TABLE IF NOT EXISTS cash_bookings (
   courier_company_id uuid NOT NULL REFERENCES courier_companies(id),
   courier_number    text NOT NULL,
   weight            numeric(12,3),
+  weight_unit       text NOT NULL DEFAULT 'KG',
   amount            numeric(12,2),
   status            booking_status NOT NULL DEFAULT 'BOOKED',
   remarks           text,
@@ -155,6 +162,45 @@ CREATE TABLE IF NOT EXISTS cash_bookings (
 CREATE INDEX IF NOT EXISTS idx_cash_bookings_booking_date ON cash_bookings(booking_date);
 CREATE INDEX IF NOT EXISTS idx_cash_bookings_courier_number ON cash_bookings(courier_number);
 CREATE INDEX IF NOT EXISTS idx_cash_bookings_status ON cash_bookings(status);
+
+-- Invoices (Account Party billing)
+CREATE TABLE IF NOT EXISTS invoices (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  invoice_number     text NOT NULL UNIQUE,
+  bill_date          timestamptz NOT NULL DEFAULT now(),
+  period_from        timestamptz NOT NULL,
+  period_to          timestamptz NOT NULL,
+  account_party_id   uuid NOT NULL REFERENCES account_parties(id),
+  sac_code           text,
+  notes              text,
+  status             invoice_status NOT NULL DEFAULT 'GENERATED',
+  subtotal           numeric(12,2) NOT NULL DEFAULT 0,
+  total              numeric(12,2) NOT NULL DEFAULT 0,
+  created_by_user_id uuid REFERENCES users(id),
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  updated_at         timestamptz NOT NULL DEFAULT now(),
+  deleted_at         timestamptz
+);
+CREATE INDEX IF NOT EXISTS idx_invoices_account_party_id ON invoices(account_party_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_bill_date ON invoices(bill_date);
+CREATE INDEX IF NOT EXISTS idx_invoices_period ON invoices(period_from, period_to);
+
+CREATE TABLE IF NOT EXISTS invoice_items (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  invoice_id         uuid NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+  account_booking_id uuid REFERENCES account_bookings(id) ON DELETE SET NULL,
+  booking_date       timestamptz NOT NULL,
+  customer_name      text NOT NULL,
+  courier_name       text NOT NULL,
+  courier_number     text NOT NULL,
+  destination        text,
+  weight             numeric(12,3),
+  weight_unit        text NOT NULL DEFAULT 'KG',
+  amount             numeric(12,2) NOT NULL DEFAULT 0,
+  created_at         timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice_id ON invoice_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_account_booking_id ON invoice_items(account_booking_id);
 
 -- Status timeline
 CREATE TABLE IF NOT EXISTS courier_status_logs (

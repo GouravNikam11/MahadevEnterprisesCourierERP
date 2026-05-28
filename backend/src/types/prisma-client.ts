@@ -22,6 +22,9 @@ export interface PrismaClient {
   cashBooking: PrismaModelDelegate
   courierCompany: PrismaModelDelegate
   pincode: PrismaModelDelegate
+  invoice: PrismaModelDelegate
+  invoiceItem: PrismaModelDelegate
   courierStatusLog: PrismaModelDelegate
   smsLog: PrismaModelDelegate
 }
+

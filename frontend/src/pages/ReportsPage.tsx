@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { api } from '../services/api'
 import { DataTable } from '../components/layout/DataTable'
 import { PageHeader } from '../components/layout/PageHeader'
@@ -13,12 +13,24 @@ import {
   pageClass,
   textPrimaryClass,
 } from '../components/layout/uiClasses'
+import { downloadCsv } from '../utils/csv'
+import { downloadExcel, downloadPdf } from '../utils/export'
 
 export function ReportsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [rows, setRows] = useState<any[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
+
+  const exportRows = useMemo(() => {
+    return (rows ?? []).map((r) => ({
+      date: r.date,
+      accountBookings: r.accountBookings,
+      cashBookings: r.cashBookings,
+      totalBookings: r.totalBookings,
+    }))
+  }, [rows])
 
   const run = async () => {
     setLoading(true)
@@ -33,9 +45,11 @@ export function ReportsPage() {
     }
   }
 
-  const downloadCsv = () => {
-    const url = `${import.meta.env.VITE_API_URL}/reports/daily-bookings?date=${encodeURIComponent(date)}&format=csv`
-    window.open(url, '_blank')
+  const onExport = () => {
+    const base = `daily-bookings-${date}`
+    if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
+    if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'DailyBookings', exportRows)
+    return downloadPdf(`${base}.pdf`, 'Daily bookings', exportRows)
   }
 
   return (
@@ -54,8 +68,17 @@ export function ReportsPage() {
             <button type="button" onClick={run} disabled={loading} className={btnPrimaryClass}>
               {loading ? 'Running…' : 'Run'}
             </button>
-            <button type="button" onClick={downloadCsv} className={btnSecondaryClass}>
-              Download CSV
+            <select
+              className={`${inputClass} sm:w-[140px]`}
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value as any)}
+            >
+              <option value="csv">CSV</option>
+              <option value="excel">EXCEL</option>
+              <option value="pdf">PDF</option>
+            </select>
+            <button type="button" onClick={onExport} className={btnSecondaryClass} disabled={!rows?.length}>
+              Download
             </button>
           </div>
         </div>

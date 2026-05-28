@@ -20,6 +20,7 @@ import { reportsRouter } from './routes/reports'
 import { usersRouter } from './routes/users'
 import { platformRouter } from './routes/platform'
 import { lookupRouter } from './routes/lookup'
+import { billingRouter } from './routes/billing'
 import { notFound } from './middleware/notFound'
 import { errorHandler } from './middleware/errorHandler'
 
@@ -58,6 +59,7 @@ export function createApp() {
   app.use(API_PREFIX, bookingRouter)
   app.use(API_PREFIX, statusRouter)
   app.use(API_PREFIX, reportsRouter)
+  app.use(API_PREFIX, billingRouter)
   app.use(API_PREFIX, usersRouter)
   app.use(API_PREFIX, platformRouter)
   app.use(API_PREFIX, lookupRouter)

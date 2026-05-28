@@ -41,6 +41,7 @@ const schema = z.object({
   parcelType: z.string().optional().or(z.literal('')),
   destination: z.string().optional().or(z.literal('')),
   weight: z.coerce.number().nonnegative().optional(),
+  weightUnit: z.enum(['KG', 'GM']).optional().default('KG'),
   charges: z.coerce.number().nonnegative().optional(),
   remarks: z.string().optional().or(z.literal('')),
 })
@@ -81,6 +82,7 @@ export function AccountBookingPage() {
       parcelType: '',
       destination: '',
       weight: '',
+      weightUnit: 'KG',
       charges: '',
       remarks: '',
     } as any,
@@ -126,6 +128,7 @@ export function AccountBookingPage() {
     parcelType: '',
     destination: '',
     weight: '',
+    weightUnit: 'KG',
     charges: '',
     remarks: '',
   } as const
@@ -136,6 +139,7 @@ export function AccountBookingPage() {
     parcelType: values.parcelType || undefined,
     destination: values.destination || undefined,
     weight: optionalNumber(values.weight),
+    weightUnit: values.weightUnit ?? 'KG',
     charges: optionalNumber(values.charges),
     remarks: values.remarks || undefined,
   })
@@ -190,6 +194,7 @@ export function AccountBookingPage() {
       parcelType: row.parcelType ?? '',
       destination: row.destination ?? '',
       weight: row.weight != null ? Number(row.weight) : undefined,
+      weightUnit: row.weightUnit ?? 'KG',
       charges: row.charges != null ? Number(row.charges) : undefined,
       remarks: row.remarks ?? '',
     } as any)
@@ -301,12 +306,13 @@ export function AccountBookingPage() {
           </div>
           <div>
             <label className={labelClass}>Weight</label>
-            <input
-              type="number"
-              step="0.01"
-              className={inputClass}
-              {...form.register('weight')}
-            />
+            <div className="flex gap-2">
+              <input type="number" step="0.01" className={inputClass} {...form.register('weight')} />
+              <select className={`${selectClass} w-[110px]`} {...form.register('weightUnit')}>
+                <option value="KG">KG</option>
+                <option value="GM">GM</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className={labelClass}>Charges</label>
@@ -386,7 +392,9 @@ export function AccountBookingPage() {
               <td className={textPrimaryClass}>{row.customerName}</td>
               <td className={textSecondaryClass}>{row.customerPhone ?? '—'}</td>
               <td className={textSecondaryClass}>{row.destination ?? '—'}</td>
-              <td className={textSecondaryClass}>{row.weight ?? '—'}</td>
+              <td className={textSecondaryClass}>
+                {row.weight != null ? `${row.weight} ${row.weightUnit ?? 'KG'}` : '—'}
+              </td>
               <td className="text-right">
                 <div className="flex flex-wrap justify-end gap-1">
                   <button type="button" className={btnTableActionClass} onClick={() => startEdit(row)}>

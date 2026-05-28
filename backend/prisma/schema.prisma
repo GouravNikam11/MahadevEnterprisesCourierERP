@@ -116,6 +116,7 @@ model AccountParty {
   isActive  Boolean  @default(true) @map("is_active")
 
   accountBookings AccountBooking[]
+  invoices        Invoice[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -182,12 +183,14 @@ model AccountBooking {
   parcelType    String?         @map("parcel_type")
   destination   String?
   weight        Decimal?
+  weightUnit    String          @default("KG") @map("weight_unit")
   charges       Decimal?
   status        BookingStatus   @default(BOOKED)
   remarks       String?
 
   statusLogs CourierStatusLog[]
   smsLogs    SmsLog[]
+  invoiceItems InvoiceItem[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -216,6 +219,7 @@ model CashBooking {
 
   courierNumber String          @map("courier_number")
   weight        Decimal?
+  weightUnit    String          @default("KG") @map("weight_unit")
   amount        Decimal?
   status        BookingStatus   @default(BOOKED)
   remarks       String?
@@ -231,6 +235,70 @@ model CashBooking {
   @@index([courierNumber])
   @@index([status])
   @@map("cash_bookings")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  GENERATED
+  CANCELLED
+
+  @@map("invoice_status")
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique @map("invoice_number")
+  billDate      DateTime      @default(now()) @map("bill_date")
+  periodFrom    DateTime      @map("period_from")
+  periodTo      DateTime      @map("period_to")
+
+  accountPartyId String       @map("account_party_id")
+  accountParty   AccountParty @relation(fields: [accountPartyId], references: [id])
+
+  sacCode    String? @map("sac_code")
+  notes      String?
+  status     InvoiceStatus @default(GENERATED)
+
+  subtotal Decimal @default(0)
+  total    Decimal @default(0)
+
+  items InvoiceItem[]
+
+  createdByUserId String?   @map("created_by_user_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  @@index([accountPartyId])
+  @@index([billDate])
+  @@index([periodFrom, periodTo])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String  @id @default(uuid())
+  invoiceId String  @map("invoice_id")
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  // optional linkage to original booking (for traceability)
+  accountBookingId String?        @map("account_booking_id")
+  accountBooking   AccountBooking? @relation(fields: [accountBookingId], references: [id], onDelete: SetNull)
+
+  // snapshot fields (so invoice doesn't change if booking changes)
+  bookingDate  DateTime @map("booking_date")
+  customerName String  @map("customer_name")
+  courierName  String  @map("courier_name")
+  courierNumber String @map("courier_number")
+  destination  String? @map("destination")
+  weight       Decimal? 
+  weightUnit   String  @default("KG") @map("weight_unit")
+  amount       Decimal  @default(0)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([invoiceId])
+  @@index([accountBookingId])
+  @@map("invoice_items")
 }
 
 model CourierStatusLog {

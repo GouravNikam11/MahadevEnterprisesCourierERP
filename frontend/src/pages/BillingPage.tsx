@@ -18,8 +18,7 @@ import {
 } from '../components/layout/uiClasses'
 import { lookupAccountParties, type LookupItem } from '../services/lookupApi'
 import { generateInvoice, listInvoices, previewBilling } from '../services/billingApi'
-import { downloadCsv } from '../utils/csv'
-import { downloadExcel, downloadPdf } from '../utils/export'
+import { downloadInvoiceCsv, downloadInvoiceExcel, downloadInvoicePdf } from '../utils/invoiceExport'
 import { ReceiptModal } from '../components/ReceiptModal'
 import { InvoicePrint } from '../components/InvoicePrint'
 
@@ -34,6 +33,8 @@ export function BillingPage() {
   const [preview, setPreview] = useState<any | null>(null)
   const [invoices, setInvoices] = useState<any[] | null>(null)
   const [showPrint, setShowPrint] = useState(false)
+  const [currentInvoiceNo, setCurrentInvoiceNo] = useState<string | null>(null)
+  const [currentBillDate, setCurrentBillDate] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
@@ -62,6 +63,8 @@ export function BillingPage() {
     try {
       const d = await previewBilling(accountPartyId, from, to)
       setPreview(d)
+      setCurrentInvoiceNo(null)
+      setCurrentBillDate(null)
     } catch (e) {
       setError((e as any)?.response?.data?.message ?? (e as any)?.message ?? 'Failed to preview')
     } finally {
@@ -81,6 +84,10 @@ export function BillingPage() {
         notes: notes.trim() || undefined,
       })
       setInvoices((prev) => (prev ? [created.invoice, ...prev] : [created.invoice]))
+
+      // keep the current preview rows but switch print/export to use the real invoice metadata
+      setCurrentInvoiceNo(created.invoice?.invoiceNumber ?? null)
+      setCurrentBillDate(String(created.invoice?.billDate ?? new Date().toISOString()).slice(0, 10))
     } catch (e) {
       setError((e as any)?.response?.data?.message ?? (e as any)?.message ?? 'Failed to generate')
     } finally {
@@ -88,25 +95,12 @@ export function BillingPage() {
     }
   }
 
-  const exportRows = useMemo(() => {
-    const rows = (preview?.rows ?? []) as any[]
-    return rows.map((r, i) => ({
-      srNo: i + 1,
-      date: String(r.bookingDate).slice(0, 10),
-      customerName: r.customerName,
-      courierName: r.courierName,
-      courierNo: r.courierNumber,
-      destination: r.destination ?? '',
-      weight: r.weight != null ? `${r.weight} ${r.weightUnit ?? 'KG'}` : '',
-      amount: r.amount ?? '',
-    }))
-  }, [preview?.rows])
-
   const onExport = () => {
+    if (!printData) return
     const base = `billing-${from}-to-${to}`
-    if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
-    if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'Billing', exportRows)
-    return downloadPdf(`${base}.pdf`, 'Billing', exportRows)
+    if (exportFormat === 'csv') return downloadInvoiceCsv(`${base}.csv`, printData)
+    if (exportFormat === 'excel') return downloadInvoiceExcel(`${base}.xlsx`, printData)
+    return downloadInvoicePdf(`${base}.pdf`, printData)
   }
 
   const printData = useMemo(() => {
@@ -117,8 +111,8 @@ export function BillingPage() {
       companyPhonesLine: 'MOB. 9834593123 / 9561237114',
       companyGstNo: '27GXMPK5825E1Z5',
       companyPanNo: 'GXMPK5825E',
-      billNo: 'PREVIEW',
-      billDate: new Date().toISOString().slice(0, 10),
+      billNo: currentInvoiceNo ?? 'PREVIEW',
+      billDate: currentBillDate ?? new Date().toISOString().slice(0, 10),
       periodFrom: preview.period?.from,
       periodTo: preview.period?.to,
       sacCode: sacCode.trim() || undefined,
@@ -141,7 +135,7 @@ export function BillingPage() {
       subtotal: preview.totals?.subtotal ?? 0,
       total: preview.totals?.total ?? 0,
     }
-  }, [preview, sacCode])
+  }, [preview, sacCode, currentInvoiceNo, currentBillDate])
 
   return (
     <div className={pageClass}>

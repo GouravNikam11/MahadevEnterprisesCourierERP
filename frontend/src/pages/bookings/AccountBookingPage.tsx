@@ -33,6 +33,7 @@ import { downloadCsv } from '../../utils/csv'
 import { downloadExcel, downloadPdf } from '../../utils/export'
 
 const schema = z.object({
+  bookingDate: z.string().min(10),
   accountPartyId: z.string().uuid(),
   customerName: z.string().min(2),
   customerPhone: z.string().min(10).max(15).optional().or(z.literal('')),
@@ -74,6 +75,7 @@ export function AccountBookingPage() {
   const form = useForm<any>({
     resolver: zodResolver(schema) as any,
     defaultValues: {
+      bookingDate: new Date().toISOString().slice(0, 10),
       accountPartyId: '',
       customerName: '',
       customerPhone: '',
@@ -120,6 +122,7 @@ export function AccountBookingPage() {
   }, [query])
 
   const emptyFormValues = {
+    bookingDate: new Date().toISOString().slice(0, 10),
     accountPartyId: '',
     customerName: '',
     customerPhone: '',
@@ -186,6 +189,7 @@ export function AccountBookingPage() {
     setEditing(row)
     setTrackingLink(null)
     form.reset({
+      bookingDate: row.bookingDate ? String(row.bookingDate).slice(0, 10) : new Date().toISOString().slice(0, 10),
       accountPartyId: row.accountPartyId,
       customerName: row.customerName,
       customerPhone: row.customerPhone ?? '',
@@ -248,6 +252,10 @@ export function AccountBookingPage() {
           {editing ? 'Edit booking' : 'New booking'}
         </div>
         <form className={formGridClass} onSubmit={form.handleSubmit(editing ? onUpdate : onCreate)}>
+          <div>
+            <label className={labelClass}>Date *</label>
+            <input type="date" className={inputClass} {...form.register('bookingDate')} />
+          </div>
           <div>
             <label className={labelClass}>Account Party *</label>
             <select
@@ -386,8 +394,8 @@ export function AccountBookingPage() {
           {(data?.items ?? []).map((row, i) => (
             <tr key={row.id}>
               <td className={textSecondaryClass}>{serialOffset + i + 1}</td>
-              <td className={textSecondaryClass}>{String(row.bookingDate).slice(0, 10)}</td>
-              <td className="font-medium text-erp-text">{row.courierNumber}</td>
+              <td className={`${textSecondaryClass} whitespace-nowrap`}>{String(row.bookingDate).slice(0, 10)}</td>
+              <td className="font-medium text-erp-text whitespace-nowrap">{row.courierNumber}</td>
               <td className={textPrimaryClass}>{row.accountParty?.name ?? '—'}</td>
               <td className={textPrimaryClass}>{row.customerName}</td>
               <td className={textSecondaryClass}>{row.customerPhone ?? '—'}</td>
@@ -396,7 +404,7 @@ export function AccountBookingPage() {
                 {row.weight != null ? `${row.weight} ${row.weightUnit ?? 'KG'}` : '—'}
               </td>
               <td className="text-right">
-                <div className="flex flex-wrap justify-end gap-1">
+                <div className="flex flex-col items-end gap-1 sm:flex-row sm:justify-end">
                   <button type="button" className={btnTableActionClass} onClick={() => startEdit(row)}>
                     Edit
                   </button>

@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { PageHeader } from '../components/layout/PageHeader'
 import { api } from '../services/api'
-import { chartAreaClass, pageClass, statHintClass, statIconClass, statTitleClass } from '../components/layout/uiClasses'
+import { pageClass, statHintClass, statIconClass, statTitleClass } from '../components/layout/uiClasses'
+import { BookingChart } from '../components/charts/BookingChart'
+import { RevenueChart } from '../components/charts/RevenueChart'
+import { ChartCard } from '../components/charts/ChartCard'
+import { ChartSkeleton } from '../components/charts/ChartSkeleton'
 
 type SeriesPoint = { label: string; bookings: number; revenue: number }
 
@@ -15,90 +20,29 @@ function formatMoney(n: number) {
   return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n)
 }
 
-function BarChart(props: { points: { label: string; value: number }[] }) {
-  const max = Math.max(0, ...props.points.map((p) => Number(p.value ?? 0)))
-  const hasData = max > 0
-
-  if (!props.points.length) {
-    return <div className="h-full w-full text-sm text-erp-muted flex items-center justify-center">No data</div>
-  }
-
-  return (
-    <div className="h-full w-full">
-      <div className="h-full w-full flex items-end gap-2 px-2 pb-5">
-        {props.points.map((p) => {
-          const v = Number(p.value ?? 0)
-          const pct = hasData ? Math.max(0, Math.min(100, (v / max) * 100)) : 0
-          return (
-            <div key={p.label} className="flex-1 min-w-[28px] flex flex-col items-stretch justify-end gap-1">
-              <div className="flex-1 flex items-end">
-                <div
-                  className="w-full rounded-md bg-slate-900/90"
-                  style={{ height: `${pct}%`, minHeight: v > 0 ? 6 : 2 }}
-                  title={`${p.label}: ${v}`}
-                />
-              </div>
-              <div className="text-[11px] leading-3 text-erp-muted text-center select-none">
-                {String(p.label).split(' ')[0]}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      {!hasData && <div className="-mt-4 text-[11px] text-erp-muted text-center">No activity in this period</div>}
-    </div>
-  )
+function trendPct(values: number[]) {
+  if (values.length < 2) return null
+  const a = Number(values[values.length - 2] ?? 0)
+  const b = Number(values[values.length - 1] ?? 0)
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null
+  if (a === 0 && b === 0) return 0
+  if (a === 0) return 100
+  return ((b - a) / Math.abs(a)) * 100
 }
 
-function LineChart(props: { points: { label: string; value: number }[] }) {
-  const values = props.points.map((p) => Number(p.value ?? 0))
-  const max = Math.max(0, ...values)
-  const min = Math.min(0, ...values)
-  const hasData = max > 0
-
-  if (!props.points.length) {
-    return <div className="h-full w-full text-sm text-erp-muted flex items-center justify-center">No data</div>
-  }
-
-  const w = 300
-  const h = 140
-  const padX = 10
-  const padY = 10
-  const usableW = w - padX * 2
-  const usableH = h - padY * 2
-  const denom = Math.max(1, max - min)
-
-  const pts = props.points.map((p, idx) => {
-    const x = padX + (idx * usableW) / Math.max(1, props.points.length - 1)
-    const v = Number(p.value ?? 0)
-    const y = padY + usableH - ((v - min) / denom) * usableH
-    return { x, y, v, label: p.label }
-  })
-
-  const d = pts
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
-    .join(' ')
-
+function TrendBadge(props: { pct: number | null; positiveText?: string; negativeText?: string }) {
+  if (props.pct === null) return null
+  const pct = props.pct
+  const up = pct >= 0
+  const cls = up
+    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+    : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+  const Icon = up ? ArrowUpRight : ArrowDownRight
   return (
-    <div className="h-full w-full">
-      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%" preserveAspectRatio="none">
-        <path d={`M ${padX} ${h - padY} L ${w - padX} ${h - padY}`} stroke="#e2e8f0" strokeWidth="1" fill="none" />
-        <path d={d} stroke="#0f172a" strokeWidth="2" fill="none" opacity={hasData ? 0.9 : 0.35} />
-        {pts.map((p) => (
-          <circle key={p.label} cx={p.x} cy={p.y} r="2.5" fill="#0f172a" opacity={hasData ? 0.9 : 0.35}>
-            <title>
-              {p.label}: {p.v}
-            </title>
-          </circle>
-        ))}
-      </svg>
-      <div className="-mt-4 px-2 flex justify-between gap-2 text-[11px] text-erp-muted">
-        <div className="truncate">{String(props.points[0]?.label ?? '').split(' ')[0]}</div>
-        <div className="truncate">{String(props.points[Math.floor(props.points.length / 2)]?.label ?? '').split(' ')[0]}</div>
-        <div className="truncate">{String(props.points[props.points.length - 1]?.label ?? '').split(' ')[0]}</div>
-      </div>
-      {!hasData && <div className="-mt-2 text-[11px] text-erp-muted text-center">No activity in this period</div>}
-    </div>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${cls}`}>
+      <Icon className="h-3.5 w-3.5" />
+      {Math.abs(pct).toFixed(1)}%
+    </span>
   )
 }
 
@@ -143,14 +87,11 @@ export function DashboardPage() {
 
   const series = (data?.charts?.series ?? []) as SeriesPoint[]
 
-  const bookingBars = useMemo(
-    () => series.map((m) => ({ label: m.label, value: Number(m.bookings ?? 0) })),
-    [series],
-  )
-  const revenueLine = useMemo(
-    () => series.map((m) => ({ label: m.label, value: Number(m.revenue ?? 0) })),
-    [series],
-  )
+  const bookingPoints = useMemo(() => series.map((m) => ({ label: m.label, bookings: Number(m.bookings ?? 0) })), [series])
+  const revenuePoints = useMemo(() => series.map((m) => ({ label: m.label, revenue: Number(m.revenue ?? 0) })), [series])
+
+  const bookingTrend = useMemo(() => trendPct(bookingPoints.map((p) => p.bookings)), [bookingPoints])
+  const revenueTrend = useMemo(() => trendPct(revenuePoints.map((p) => p.revenue)), [revenuePoints])
 
   const cards = [
     { title: 'Total Bookings', hint: 'All time', value: formatCompact(Number(data?.cards?.totalBookings ?? NaN)) },
@@ -215,8 +156,8 @@ export function DashboardPage() {
                 type="button"
                 onClick={() => setPeriod(p.id as any)}
                 className={
-                  'erp-btn-secondary !min-h-[32px] !px-3 !py-1 text-xs ' +
-                  (period === p.id ? '!bg-slate-900 !text-white !border-slate-900' : '')
+                  'erp-btn-secondary !min-h-[36px] !px-3 !py-1.5 text-xs ' +
+                  (period === p.id ? '!bg-erp-text !text-erp-bg !border-erp-text' : '')
                 }
               >
                 {p.label}
@@ -259,24 +200,23 @@ export function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <div className="erp-card">
-          <div className="flex items-baseline justify-between gap-2">
-            <div className="text-sm font-medium text-erp-text">Monthly bookings</div>
-            <div className="text-xs text-erp-muted">{data?.meta?.granularity === 'DAY' ? 'Daily' : 'Monthly'}</div>
-          </div>
-          <div className={chartAreaClass}>
-            {loading ? <div className="erp-skeleton h-full w-full" /> : <BarChart points={bookingBars} />}
-          </div>
-        </div>
-        <div className="erp-card">
-          <div className="flex items-baseline justify-between gap-2">
-            <div className="text-sm font-medium text-erp-text">Revenue</div>
-            <div className="text-xs text-erp-muted">{data?.meta?.granularity === 'DAY' ? 'Daily' : 'Monthly'}</div>
-          </div>
-          <div className={chartAreaClass}>
-            {loading ? <div className="erp-skeleton h-full w-full" /> : <LineChart points={revenueLine} />}
-          </div>
-        </div>
+        <ChartCard
+          title="Bookings"
+          subtitle={`${data?.meta?.granularity === 'DAY' ? 'Daily' : 'Monthly'} bookings for selected period`}
+          badge={<TrendBadge pct={bookingTrend} />}
+          legend={[{ label: 'Bookings', color: 'rgb(var(--erp-primary))' }]}
+        >
+          {loading ? <ChartSkeleton /> : <BookingChart points={bookingPoints} />}
+        </ChartCard>
+
+        <ChartCard
+          title="Revenue analytics"
+          subtitle={`${data?.meta?.granularity === 'DAY' ? 'Daily' : 'Monthly'} revenue for selected period`}
+          badge={<TrendBadge pct={revenueTrend} />}
+          legend={[{ label: 'Revenue', color: 'rgb(var(--erp-accent))' }]}
+        >
+          {loading ? <ChartSkeleton /> : <RevenueChart points={revenuePoints} />}
+        </ChartCard>
       </div>
     </div>
   )

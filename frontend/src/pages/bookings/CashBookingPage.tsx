@@ -10,10 +10,33 @@ import {
   type PincodeLookupItem,
 } from '../../services/lookupApi'
 import { ReceiptModal } from '../../components/ReceiptModal'
+import { DataTable } from '../../components/layout/DataTable'
+import { PageHeader } from '../../components/layout/PageHeader'
+import { PaginationBar } from '../../components/layout/PaginationBar'
 import { downloadCsv } from '../../utils/csv'
 import { downloadExcel, downloadPdf } from '../../utils/export'
+import {
+  alertErrorClass,
+  btnPrimaryClass,
+  btnSecondaryClass,
+  cardClass,
+  cardMutedClass,
+  emptyCellClass,
+  formActionsClass,
+  formGridClass,
+  formSpanFullClass,
+  inputClass,
+  labelClass,
+  mutedTextClass,
+  pageClass,
+  selectClass,
+  textPrimaryClass,
+  textSecondaryClass,
+  toolbarClass,
+} from '../../components/layout/uiClasses'
 
 const schema = z.object({
+  bookingDate: z.string().min(10),
   fromName: z.string().min(2),
   toName: z.string().min(2),
   mobileNumber: z.string().min(10).max(15).optional().or(z.literal('')),
@@ -42,9 +65,12 @@ export function CashBookingPage() {
   const [pincodes, setPincodes] = useState<PincodeLookupItem[]>([])
   const [pincodeSearch, setPincodeSearch] = useState('')
 
+  const pageSize = 10
+
   const form = useForm<any>({
     resolver: zodResolver(schema) as any,
     defaultValues: {
+      bookingDate: new Date().toISOString().slice(0, 10),
       fromName: '',
       toName: '',
       mobileNumber: '',
@@ -64,7 +90,7 @@ export function CashBookingPage() {
     })
   }, [])
 
-  const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize: 10 }), [q, page])
+  const query = useMemo(() => ({ q: q.trim() || undefined, page, pageSize }), [q, page, pageSize])
 
   const exportRows = useMemo(() => {
     return (data?.items ?? []).map((x) => ({
@@ -132,6 +158,7 @@ export function CashBookingPage() {
     })
     setTrackingLink(res.trackingLink)
     form.reset({
+      bookingDate: new Date().toISOString().slice(0, 10),
       fromName: '',
       toName: '',
       mobileNumber: '',
@@ -146,56 +173,58 @@ export function CashBookingPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="erp-page-title">Cash Booking</div>
-        <div className="erp-muted">Fast entry cash bookings with pincode lookup</div>
-      </div>
+    <div className={pageClass}>
+      <PageHeader title="Cash Booking" subtitle="Fast entry cash bookings with pincode lookup" />
 
       {trackingLink && (
-        <div className="erp-card-muted">
+        <div className={cardMutedClass}>
           Tracking link:{' '}
-          <a className="underline" href={trackingLink} target="_blank" rel="noreferrer">
+          <a className="text-erp-accent underline" href={trackingLink} target="_blank" rel="noreferrer">
             {trackingLink}
           </a>
         </div>
       )}
-      {error && <div className="erp-alert-error">{error}</div>}
+      {error && <div className={alertErrorClass}>{error}</div>}
 
-      <div className="erp-card">
-        <div className="mb-3 text-sm font-medium">New booking</div>
-        <form className="erp-form-grid" onSubmit={form.handleSubmit(onCreate)}>
+      <div className={cardClass}>
+        <div className="mb-3 text-sm font-medium text-erp-text">New booking</div>
+        <form className={formGridClass} onSubmit={form.handleSubmit(onCreate)}>
           <div>
-            <label className="erp-label">From name *</label>
-            <input className="erp-input" {...form.register('fromName')} />
+            <label className={labelClass}>Date *</label>
+            <input type="date" className={inputClass} {...form.register('bookingDate')} />
           </div>
           <div>
-            <label className="erp-label">To name *</label>
-            <input className="erp-input" {...form.register('toName')} />
+            <label className={labelClass}>From name *</label>
+            <input className={inputClass} {...form.register('fromName')} />
           </div>
           <div>
-            <label className="erp-label">Mobile number</label>
-            <input className="erp-input" {...form.register('mobileNumber')} />
+            <label className={labelClass}>To name *</label>
+            <input className={inputClass} {...form.register('toName')} />
           </div>
           <div>
-            <label className="erp-label">Location</label>
-            <input className="erp-input" {...form.register('location')} />
+            <label className={labelClass}>Mobile number</label>
+            <input className={inputClass} {...form.register('mobileNumber')} />
+          </div>
+          <div className={formSpanFullClass}>
+            <label className={labelClass}>Location</label>
+            <input className={inputClass} {...form.register('location')} />
           </div>
 
-          <div className="md:col-span-2 grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div className={formSpanFullClass}>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div>
-              <label className="erp-label">Search pincode</label>
+              <label className={labelClass}>Search pincode</label>
               <input
                 value={pincodeSearch}
                 onChange={(e) => setPincodeSearch(e.target.value)}
                 placeholder="Type pincode / area / city"
-                className="erp-input"
+                className={inputClass}
               />
             </div>
             <div>
-              <label className="erp-label">Select pincode</label>
+              <label className={labelClass}>Select pincode</label>
               <select
-                className="erp-input"
+                className={selectClass}
                 {...form.register('pincodeId')}
               >
                 <option value="">(optional)</option>
@@ -207,11 +236,12 @@ export function CashBookingPage() {
               </select>
             </div>
           </div>
+          </div>
 
           <div>
-            <label className="erp-label">Courier Company *</label>
+            <label className={labelClass}>Courier Company *</label>
             <select
-              className="erp-input"
+              className={selectClass}
               {...form.register('courierCompanyId')}
             >
               <option value="">Select</option>
@@ -223,32 +253,32 @@ export function CashBookingPage() {
             </select>
           </div>
           <div>
-            <label className="erp-label">Courier number *</label>
-            <input className="erp-input" {...form.register('courierNumber')} />
+            <label className={labelClass}>Courier number *</label>
+            <input className={inputClass} {...form.register('courierNumber')} />
           </div>
           <div>
-            <label className="erp-label">Weight</label>
+            <label className={labelClass}>Weight</label>
             <div className="flex gap-2">
-              <input type="number" step="0.01" className="erp-input" {...form.register('weight')} />
-              <select className="erp-input w-[110px]" {...form.register('weightUnit')}>
+              <input type="number" step="0.01" className={inputClass} {...form.register('weight')} />
+              <select className={`${selectClass} w-[110px]`} {...form.register('weightUnit')}>
                 <option value="KG">KG</option>
                 <option value="GM">GM</option>
               </select>
             </div>
           </div>
           <div>
-            <label className="erp-label">Amount</label>
-            <input type="number" step="0.01" className="erp-input" {...form.register('amount')} />
+            <label className={labelClass}>Amount</label>
+            <input type="number" step="0.01" className={inputClass} {...form.register('amount')} />
           </div>
-          <div className="md:col-span-2">
-            <label className="erp-label">Remarks</label>
-            <input className="erp-input" {...form.register('remarks')} />
+          <div className={formSpanFullClass}>
+            <label className={labelClass}>Remarks</label>
+            <input className={inputClass} {...form.register('remarks')} />
           </div>
-          <div className="md:col-span-2">
+          <div className={formActionsClass}>
             <button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="erp-btn-primary"
+              className={btnPrimaryClass}
             >
               {form.formState.isSubmitting ? 'Saving…' : 'Save booking'}
             </button>
@@ -256,7 +286,7 @@ export function CashBookingPage() {
         </form>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className={toolbarClass}>
         <input
           value={q}
           onChange={(e) => {
@@ -264,10 +294,10 @@ export function CashBookingPage() {
             setPage(1)
           }}
           placeholder="Search by courier number / names"
-          className="erp-input sm:max-w-md"
+          className={`${inputClass} sm:max-w-md`}
         />
         <select
-          className="erp-input w-full sm:w-[140px]"
+          className={`${selectClass} w-full sm:w-[140px]`}
           value={exportFormat}
           onChange={(e) => setExportFormat(e.target.value as any)}
         >
@@ -275,52 +305,47 @@ export function CashBookingPage() {
           <option value="excel">EXCEL</option>
           <option value="pdf">PDF</option>
         </select>
-        <button onClick={onExport} className="erp-btn-secondary">
+        <button onClick={onExport} className={btnSecondaryClass}>
           Export
         </button>
-        <div className="text-xs erp-muted">{loading ? 'Loading…' : ' '}</div>
+        <div className={`text-xs ${mutedTextClass}`}>{loading ? 'Loading…' : ' '}</div>
       </div>
 
-      <div className="erp-table-wrap">
-        <table className="w-full text-left text-sm">
-          <thead className="erp-table thead">
-            <tr>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Courier #</th>
-              <th className="px-4 py-3">From → To</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Receipt</th>
+      <DataTable minWidth="860px">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Courier #</th>
+            <th>From → To</th>
+            <th>Status</th>
+            <th className="text-right">Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(data?.items ?? []).map((row) => (
+            <tr key={row.id}>
+              <td className={`${textSecondaryClass} whitespace-nowrap`}>{String(row.bookingDate).slice(0, 10)}</td>
+              <td className="font-medium text-erp-text whitespace-nowrap">{row.courierNumber}</td>
+              <td className={textPrimaryClass}>
+                {row.fromName} → {row.toName}
+              </td>
+              <td className={`${textSecondaryClass} whitespace-nowrap`}>{row.status}</td>
+              <td className="text-right">
+                <button type="button" className={btnSecondaryClass} onClick={() => setReceiptRow(row)}>
+                  Print
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {(data?.items ?? []).map((row) => (
-              <tr key={row.id} className="">
-                <td className="px-4 py-3 text-erp-muted">{String(row.bookingDate).slice(0, 10)}</td>
-                <td className="px-4 py-3 font-medium">{row.courierNumber}</td>
-                <td className="px-4 py-3 text-erp-text">
-                  {row.fromName} → {row.toName}
-                </td>
-                <td className="px-4 py-3 text-erp-muted">{row.status}</td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    className="rounded-md border border-erp-border bg-white px-2.5 py-1 text-xs hover:bg-erp-hover"
-                    onClick={() => setReceiptRow(row)}
-                  >
-                    Print
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {!loading && (data?.items?.length ?? 0) === 0 && (
-              <tr>
-                <td className="erp-empty" colSpan={5}>
-                  No bookings found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          ))}
+          {!loading && (data?.items?.length ?? 0) === 0 && (
+            <tr>
+              <td className={emptyCellClass} colSpan={5}>
+                No bookings found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </DataTable>
 
       {receiptRow && (
         <ReceiptModal title="Cash Booking Receipt" onClose={() => setReceiptRow(null)}>
@@ -362,27 +387,12 @@ export function CashBookingPage() {
         </ReceiptModal>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="text-xs erp-muted">
-          Page {page} of {data?.totalPages ?? 1}
-        </div>
-        <div className="flex gap-2">
-          <button
-            className="rounded-md border border-erp-border bg-white px-3 py-1.5 text-sm hover:bg-erp-hover disabled:opacity-50"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Prev
-          </button>
-          <button
-            className="rounded-md border border-erp-border bg-white px-3 py-1.5 text-sm hover:bg-erp-hover disabled:opacity-50"
-            disabled={page >= (data?.totalPages ?? 1)}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <PaginationBar
+        page={page}
+        totalPages={data?.totalPages ?? 1}
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => p + 1)}
+      />
     </div>
   )
 }

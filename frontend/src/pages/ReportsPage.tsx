@@ -17,7 +17,8 @@ import { downloadCsv } from '../utils/csv'
 import { downloadExcel, downloadPdf } from '../utils/export'
 
 export function ReportsPage() {
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [from, setFrom] = useState(() => new Date().toISOString().slice(0, 10))
+  const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10))
   const [rows, setRows] = useState<any[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -36,7 +37,7 @@ export function ReportsPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.get('/reports/daily-bookings', { params: { date } })
+      const res = await api.get('/reports/daily-bookings', { params: { from, to } })
       setRows((res.data as any).data.rows)
     } catch (e) {
       setError((e as any)?.response?.data?.message ?? (e as any)?.message ?? 'Failed')
@@ -46,7 +47,7 @@ export function ReportsPage() {
   }
 
   const onExport = () => {
-    const base = `daily-bookings-${date}`
+    const base = `daily-bookings-${from}-to-${to}`
     if (exportFormat === 'csv') return downloadCsv(`${base}.csv`, exportRows)
     if (exportFormat === 'excel') return downloadExcel(`${base}.xlsx`, 'DailyBookings', exportRows)
     return downloadPdf(`${base}.pdf`, 'Daily bookings', exportRows)
@@ -61,8 +62,12 @@ export function ReportsPage() {
       <div className={cardClass}>
         <div className={formGridClass}>
           <div>
-            <label className={labelClass}>Date</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+            <label className={labelClass}>From</label>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>To</label>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={inputClass} />
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <button type="button" onClick={run} disabled={loading} className={btnPrimaryClass}>

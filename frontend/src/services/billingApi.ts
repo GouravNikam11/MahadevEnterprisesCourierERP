@@ -37,9 +37,9 @@ export async function generateInvoice(payload: {
   return (res.data as any).data as { invoice: any }
 }
 
-export async function listInvoices(params?: { accountPartyId?: string }) {
+export async function listInvoices(params?: { accountPartyId?: string; q?: string; page?: number; pageSize?: number }) {
   const res = await api.get('/billing/invoices', { params })
-  return (res.data as any).data as { items: any[] }
+  return (res.data as any).data as { items: any[]; page: number; pageSize: number; total: number; totalPages: number }
 }
 
 export async function getInvoice(id: string) {

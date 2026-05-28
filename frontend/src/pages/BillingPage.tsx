@@ -32,6 +32,7 @@ import { downloadInvoiceCsv, downloadInvoiceExcel } from '../utils/invoiceExport
 import { ReceiptModal } from '../components/ReceiptModal'
 import { InvoicePrint } from '../components/InvoicePrint'
 import { downloadPdfFromElement } from '../utils/pdfFromElement'
+import { PaginationBar } from '../components/layout/PaginationBar'
 
 export function BillingPage() {
   const [accountParties, setAccountParties] = useState<LookupItem[]>([])
@@ -50,6 +51,7 @@ export function BillingPage() {
   const [currentBillDate, setCurrentBillDate] = useState<string | null>(null)
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null)
   const [invoiceSearch, setInvoiceSearch] = useState('')
+  const [previewSearch, setPreviewSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
@@ -60,13 +62,49 @@ export function BillingPage() {
   const [rowDraft, setRowDraft] = useState<any | null>(null)
   const [tempRowSeq, setTempRowSeq] = useState(1)
 
+  const [previewPage, setPreviewPage] = useState(1)
+  const previewPageSize = 10
+  const [invoicePage, setInvoicePage] = useState(1)
+  const invoicePageSize = 10
+  const [invoiceTotalPages, setInvoiceTotalPages] = useState(1)
+
+  const filteredPreviewRows = useMemo(() => {
+    const rows = (preview?.rows ?? []) as any[]
+    const s = previewSearch.trim().toLowerCase()
+    if (!s) return rows
+    return rows.filter((r: any) => {
+      const hay = [
+        r.customerName,
+        r.courierName,
+        r.courierNumber,
+        r.destination,
+        r.weight != null ? `${r.weight} ${r.weightUnit ?? 'KG'}` : '',
+        r.amount,
+      ]
+        .filter((x) => x != null)
+        .join(' ')
+        .toLowerCase()
+      return hay.includes(s)
+    })
+  }, [preview?.rows, previewSearch])
+
+  const previewTotalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredPreviewRows.length / previewPageSize))
+  }, [filteredPreviewRows.length])
+
+  const pagedPreviewRows = useMemo(() => {
+    const start = (previewPage - 1) * previewPageSize
+    return filteredPreviewRows.slice(start, start + previewPageSize)
+  }, [filteredPreviewRows, previewPage])
+
   useEffect(() => {
     let cancelled = false
-    Promise.all([lookupAccountParties(), listInvoices()])
+    Promise.all([lookupAccountParties(), listInvoices({ page: invoicePage, pageSize: invoicePageSize, q: invoiceSearch.trim() || undefined })])
       .then(([ap, inv]) => {
         if (cancelled) return
         setAccountParties(ap)
         setInvoices(inv.items)
+        setInvoiceTotalPages(inv.totalPages ?? 1)
       })
       .catch((e) => {
         if (cancelled) return
@@ -75,7 +113,17 @@ export function BillingPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [invoicePage])
+
+  useEffect(() => {
+    // When searching invoices, jump to first page
+    setInvoicePage(1)
+  }, [invoiceSearch])
+
+  useEffect(() => {
+    // When preview search changes, jump to first page
+    setPreviewPage(1)
+  }, [previewSearch])
 
   const runPreview = async () => {
     setError(null)
@@ -86,6 +134,8 @@ export function BillingPage() {
       setCurrentInvoiceNo(null)
       setCurrentBillDate(null)
       setEditingInvoiceId(null)
+      setPreviewSearch('')
+      setPreviewPage(1)
     } catch (e) {
       setError((e as any)?.response?.data?.message ?? (e as any)?.message ?? 'Failed to preview')
     } finally {
@@ -305,6 +355,8 @@ export function BillingPage() {
 
       setCurrentInvoiceNo(invoice.invoiceNumber ?? null)
       setCurrentBillDate(String(invoice.billDate).slice(0, 10))
+      setPreviewSearch('')
+      setPreviewPage(1)
 
       setPreview({
         accountParty: invoice.accountParty,
@@ -510,10 +562,10 @@ export function BillingPage() {
               <option value="excel">EXCEL</option>
               <option value="pdf">PDF</option>
             </select>
-            <button type="button" className={btnSecondaryClass} onClick={onExport} disabled={!preview?.rows?.length}>
+            <button type="button" className={btnSecondaryClass} onClick={onExport} disabled={!editingInvoiceId}>
               Download
             </button>
-            <button type="button" className={btnSecondaryClass} onClick={() => setShowPrint(true)} disabled={!preview?.rows?.length}>
+            <button type="button" className={btnSecondaryClass} onClick={() => setShowPrint(true)} disabled={!editingInvoiceId}>
               Print
             </button>
             <div className={`text-xs ${mutedTextClass}`}>{preview?.rows?.length ? `${preview.rows.length} rows` : ' '}</div>
@@ -547,9 +599,17 @@ export function BillingPage() {
             <div className="text-sm font-medium text-erp-text">
               Preview: {preview.accountParty?.name ?? ''} ({preview.period?.from} to {preview.period?.to})
             </div>
-            <button type="button" className={btnSecondaryClass} onClick={onAddRow} disabled={!preview || loadingInvoiceAction}>
-              Add row
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                value={previewSearch}
+                onChange={(e) => setPreviewSearch(e.target.value)}
+                placeholder="Search customer / courier / destination / weight / amount"
+                className={`${inputClass} sm:w-[360px]`}
+              />
+              <button type="button" className={btnSecondaryClass} onClick={onAddRow} disabled={!preview || loadingInvoiceAction}>
+                Add row
+              </button>
+            </div>
           </div>
           <DataTable minWidth="1100px">
             <thead>
@@ -566,12 +626,12 @@ export function BillingPage() {
               </tr>
             </thead>
             <tbody>
-              {(preview.rows ?? []).map((r: any, i: number) => {
+              {pagedPreviewRows.map((r: any, i: number) => {
                 const key = String(r.invoiceItemId ?? r.tempId ?? r.accountBookingId ?? `${r.courierNumber}-${String(r.bookingDate)}`)
                 const isEditing = editingRowKey === key
                 return (
                 <tr key={key}>
-                  <td className={textSecondaryClass}>{i + 1}</td>
+                  <td className={textSecondaryClass}>{(previewPage - 1) * previewPageSize + i + 1}</td>
                   <td className={textSecondaryClass}>
                     {isEditing ? (
                       <input className={inputClass} type="date" value={rowDraft?.bookingDate ?? ''} onChange={(e)=>setRowDraft((d:any)=>({...(d??{}),bookingDate:e.target.value}))}/>
@@ -642,15 +702,21 @@ export function BillingPage() {
                   </td>
                 </tr>
               )})}
-              {(preview.rows ?? []).length === 0 && (
+              {pagedPreviewRows.length === 0 && (
                 <tr>
                   <td className={emptyCellClass} colSpan={9}>
-                    No bookings found for selected range
+                    No matching records
                   </td>
                 </tr>
               )}
             </tbody>
           </DataTable>
+          <PaginationBar
+            page={previewPage}
+            totalPages={previewTotalPages}
+            onPrev={() => setPreviewPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPreviewPage((p) => Math.min(previewTotalPages, p + 1))}
+          />
           <div className="mt-3 flex justify-end gap-6 text-sm">
             <div className={textSecondaryClass}>Subtotal: <span className="font-medium text-erp-text">{preview.totals?.subtotal ?? 0}</span></div>
             <div className={textSecondaryClass}>Total: <span className="font-semibold text-erp-text">{preview.totals?.total ?? 0}</span></div>
@@ -680,22 +746,7 @@ export function BillingPage() {
             </tr>
           </thead>
           <tbody>
-            {(invoices ?? [])
-              .filter((inv: any) => {
-                const s = invoiceSearch.trim().toLowerCase()
-                if (!s) return true
-                const hay = [
-                  inv.invoiceNumber,
-                  inv.accountParty?.name,
-                  String(inv.periodFrom).slice(0, 10),
-                  String(inv.periodTo).slice(0, 10),
-                ]
-                  .filter(Boolean)
-                  .join(' ')
-                  .toLowerCase()
-                return hay.includes(s)
-              })
-              .map((inv: any) => (
+            {(invoices ?? []).map((inv: any) => (
               <tr key={inv.id}>
                 <td className={textSecondaryClass}>{String(inv.billDate).slice(0, 10)}</td>
                 <td className="font-medium text-erp-text">{inv.invoiceNumber}</td>
@@ -735,6 +786,12 @@ export function BillingPage() {
             )}
           </tbody>
         </DataTable>
+        <PaginationBar
+          page={invoicePage}
+          totalPages={invoiceTotalPages}
+          onPrev={() => setInvoicePage((p) => Math.max(1, p - 1))}
+          onNext={() => setInvoicePage((p) => Math.min(invoiceTotalPages, p + 1))}
+        />
       </div>
 
       {showPrint && printData && (

@@ -234,16 +234,31 @@ export async function generateInvoice(req: Request, res: Response) {
 
 export async function listInvoices(req: Request, res: Response) {
   const accountPartyId = String(req.query.accountPartyId ?? '')
+  const q = String(req.query.q ?? '').trim()
+  const page = Math.max(1, Number(req.query.page ?? 1) || 1)
+  const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize ?? 10) || 10))
+
   const where: any = { deletedAt: null }
   if (accountPartyId) where.accountPartyId = accountPartyId
+  if (q) {
+    where.OR = [
+      { invoiceNumber: { contains: q, mode: 'insensitive' } },
+      { accountParty: { name: { contains: q, mode: 'insensitive' } } },
+    ]
+  }
 
-  const items = await prisma.invoice.findMany({
-    where,
-    include: { accountParty: true },
-    orderBy: { createdAt: 'desc' },
-    take: 200,
-  })
-  return res.json(ok('Success', { items }))
+  const [items, total] = await Promise.all([
+    prisma.invoice.findMany({
+      where,
+      include: { accountParty: true },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.invoice.count({ where }),
+  ])
+
+  return res.json(ok('Success', { items, page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) }))
 }
 
 export async function getInvoice(req: Request, res: Response) {

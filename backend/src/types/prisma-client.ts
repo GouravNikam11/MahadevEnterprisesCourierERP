@@ -13,6 +13,10 @@ export interface PrismaModelDelegate {
 export interface PrismaClient {
   $connect(): Promise<void>
   $disconnect(): Promise<void>
+  $queryRawUnsafe?: (...args: any[]) => Promise<any>
+  $queryRaw?: (...args: any[]) => Promise<any>
+  $executeRawUnsafe?: (...args: any[]) => Promise<any>
+  $executeRaw?: (...args: any[]) => Promise<any>
   user: PrismaModelDelegate
   role: PrismaModelDelegate
   refreshToken: PrismaModelDelegate

@@ -340,3 +340,28 @@ export async function deleteInvoiceItem(req: Request, res: Response) {
   return res.json(ok('Deleted', { id: itemId, invoice }))
 }
 
+export async function createInvoiceItem(req: Request, res: Response) {
+  const invoiceId = String(req.params.id)
+  const invoice = await prisma.invoice.findFirst({ where: { id: invoiceId, deletedAt: null } })
+  if (!invoice) return res.status(404).json(fail('Invoice not found', { code: 'NOT_FOUND' }))
+
+  const body = (req.body ?? {}) as any
+  const item = await prisma.invoiceItem.create({
+    data: {
+      invoiceId,
+      accountBookingId: body.accountBookingId ?? null,
+      bookingDate: body.bookingDate ? new Date(body.bookingDate) : new Date(),
+      customerName: String(body.customerName ?? ''),
+      courierName: String(body.courierName ?? ''),
+      courierNumber: String(body.courierNumber ?? ''),
+      destination: body.destination != null ? String(body.destination) : null,
+      weight: body.weight != null ? String(body.weight) : null,
+      weightUnit: body.weightUnit === 'GM' ? 'GM' : 'KG',
+      amount: String(Number(body.amount ?? 0)),
+    } as any,
+  })
+
+  const updatedInvoice = await recomputeInvoiceTotals(invoiceId)
+  return res.status(201).json(ok('Created', { item, invoice: updatedInvoice }))
+}
+

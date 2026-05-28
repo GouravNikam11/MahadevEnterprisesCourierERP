@@ -67,3 +67,8 @@ export async function deleteInvoiceItem(invoiceId: string, itemId: string) {
   return (res.data as any).data as { id: string; invoice: any }
 }
 
+export async function createInvoiceItem(invoiceId: string, payload: any) {
+  const res = await api.post(`/billing/invoices/${invoiceId}/items`, payload)
+  return (res.data as any).data as { item: any; invoice: any }
+}
+

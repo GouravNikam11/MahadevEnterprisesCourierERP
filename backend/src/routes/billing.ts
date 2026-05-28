@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { requireAuth, requireRole } from '../middleware/auth'
 import {
+  createInvoiceItem,
   deleteInvoice,
   deleteInvoiceItem,
   generateInvoice,
@@ -25,4 +26,5 @@ billingRouter.delete('/billing/invoices/:id', deleteInvoice)
 
 billingRouter.put('/billing/invoices/:id/items/:itemId', updateInvoiceItem)
 billingRouter.delete('/billing/invoices/:id/items/:itemId', deleteInvoiceItem)
+billingRouter.post('/billing/invoices/:id/items', createInvoiceItem)
 

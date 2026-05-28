@@ -18,6 +18,7 @@ import {
 } from '../components/layout/uiClasses'
 import { lookupAccountParties, type LookupItem } from '../services/lookupApi'
 import {
+  createInvoiceItem,
   deleteInvoice,
   deleteInvoiceItem,
   generateInvoice,
@@ -57,6 +58,7 @@ export function BillingPage() {
   const printExportRef = useRef<HTMLDivElement | null>(null)
   const [editingRowKey, setEditingRowKey] = useState<string | null>(null)
   const [rowDraft, setRowDraft] = useState<any | null>(null)
+  const [tempRowSeq, setTempRowSeq] = useState(1)
 
   useEffect(() => {
     let cancelled = false
@@ -92,7 +94,7 @@ export function BillingPage() {
   }
 
   const startEditRow = (row: any) => {
-    const key = row.invoiceItemId ?? row.accountBookingId ?? `${row.courierNumber}-${String(row.bookingDate)}`
+    const key = row.invoiceItemId ?? row.tempId ?? row.accountBookingId ?? `${row.courierNumber}-${String(row.bookingDate)}`
     setEditingRowKey(String(key))
     setRowDraft({
       ...row,
@@ -111,7 +113,7 @@ export function BillingPage() {
     setPreview((p: any) => {
       if (!p) return p
       const rows = (p.rows ?? []).map((r: any) => {
-        const k = String(r.invoiceItemId ?? r.accountBookingId ?? `${r.courierNumber}-${String(r.bookingDate)}`)
+        const k = String(r.invoiceItemId ?? r.tempId ?? r.accountBookingId ?? `${r.courierNumber}-${String(r.bookingDate)}`)
         return k === key ? { ...r, ...next } : r
       })
       const subtotal = rows.reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0)
@@ -123,7 +125,7 @@ export function BillingPage() {
     setPreview((p: any) => {
       if (!p) return p
       const rows = (p.rows ?? []).filter((r: any) => {
-        const k = String(r.invoiceItemId ?? r.accountBookingId ?? `${r.courierNumber}-${String(r.bookingDate)}`)
+        const k = String(r.invoiceItemId ?? r.tempId ?? r.accountBookingId ?? `${r.courierNumber}-${String(r.bookingDate)}`)
         return k !== key
       })
       const subtotal = rows.reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0)
@@ -172,7 +174,7 @@ export function BillingPage() {
   }
 
   const deleteRow = async (row: any) => {
-    const key = String(row.invoiceItemId ?? row.accountBookingId ?? `${row.courierNumber}-${String(row.bookingDate)}`)
+    const key = String(row.invoiceItemId ?? row.tempId ?? row.accountBookingId ?? `${row.courierNumber}-${String(row.bookingDate)}`)
     if (!window.confirm('Delete this row from preview?')) return
 
     if (editingInvoiceId && row.invoiceItemId) {
@@ -190,6 +192,62 @@ export function BillingPage() {
     } else {
       deleteLocalRow(key)
     }
+  }
+
+  const onAddRow = async () => {
+    if (!preview) return
+    const tempId = `tmp-${tempRowSeq}`
+    setTempRowSeq((x) => x + 1)
+
+    const newRow: any = {
+      tempId,
+      bookingDate: new Date().toISOString().slice(0, 10),
+      customerName: '',
+      courierName: '',
+      courierNumber: '',
+      destination: '',
+      weight: '',
+      weightUnit: 'KG',
+      amount: 0,
+    }
+
+    // If editing a saved invoice, create the row in DB immediately and load back with invoiceItemId
+    if (editingInvoiceId) {
+      setLoadingInvoiceAction(true)
+      try {
+        const { item, invoice } = await createInvoiceItem(editingInvoiceId, newRow)
+        setInvoices((prev) => (prev ? prev.map((x) => (x.id === invoice.id ? invoice : x)) : prev))
+        setPreview((p: any) =>
+          p
+            ? {
+                ...p,
+                rows: [
+                  ...p.rows,
+                  {
+                    invoiceItemId: item.id,
+                    accountBookingId: item.accountBookingId,
+                    bookingDate: item.bookingDate,
+                    customerName: item.customerName,
+                    courierName: item.courierName,
+                    courierNumber: item.courierNumber,
+                    destination: item.destination,
+                    weight: item.weight,
+                    weightUnit: item.weightUnit ?? 'KG',
+                    amount: item.amount,
+                  },
+                ],
+                totals: { ...p.totals, subtotal: Number(invoice.subtotal ?? p.totals?.subtotal ?? 0), total: Number(invoice.total ?? p.totals?.total ?? 0) },
+              }
+            : p,
+        )
+      } finally {
+        setLoadingInvoiceAction(false)
+      }
+      return
+    }
+
+    setPreview((p: any) => (p ? { ...p, rows: [...(p.rows ?? []), newRow] } : p))
+    startEditRow(newRow)
   }
 
   const onGenerate = async () => {
@@ -485,8 +543,13 @@ export function BillingPage() {
 
       {preview && (
         <div className={cardClass}>
-          <div className="mb-2 text-sm font-medium text-erp-text">
-            Preview: {preview.accountParty?.name ?? ''} ({preview.period?.from} to {preview.period?.to})
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="text-sm font-medium text-erp-text">
+              Preview: {preview.accountParty?.name ?? ''} ({preview.period?.from} to {preview.period?.to})
+            </div>
+            <button type="button" className={btnSecondaryClass} onClick={onAddRow} disabled={!preview || loadingInvoiceAction}>
+              Add row
+            </button>
           </div>
           <DataTable minWidth="1100px">
             <thead>
@@ -504,7 +567,7 @@ export function BillingPage() {
             </thead>
             <tbody>
               {(preview.rows ?? []).map((r: any, i: number) => {
-                const key = String(r.invoiceItemId ?? r.accountBookingId ?? `${r.courierNumber}-${String(r.bookingDate)}`)
+                const key = String(r.invoiceItemId ?? r.tempId ?? r.accountBookingId ?? `${r.courierNumber}-${String(r.bookingDate)}`)
                 const isEditing = editingRowKey === key
                 return (
                 <tr key={key}>

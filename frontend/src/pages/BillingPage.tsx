@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PageHeader } from '../components/layout/PageHeader'
 import { DataTable } from '../components/layout/DataTable'
 import {
@@ -18,9 +18,10 @@ import {
 } from '../components/layout/uiClasses'
 import { lookupAccountParties, type LookupItem } from '../services/lookupApi'
 import { generateInvoice, listInvoices, previewBilling } from '../services/billingApi'
-import { downloadInvoiceCsv, downloadInvoiceExcel, downloadInvoicePdf } from '../utils/invoiceExport'
+import { downloadInvoiceCsv, downloadInvoiceExcel } from '../utils/invoiceExport'
 import { ReceiptModal } from '../components/ReceiptModal'
 import { InvoicePrint } from '../components/InvoicePrint'
+import { downloadPdfFromElement } from '../utils/pdfFromElement'
 
 export function BillingPage() {
   const [accountParties, setAccountParties] = useState<LookupItem[]>([])
@@ -39,6 +40,7 @@ export function BillingPage() {
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
   const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | 'pdf'>('pdf')
+  const printExportRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -100,7 +102,9 @@ export function BillingPage() {
     const base = `billing-${from}-to-${to}`
     if (exportFormat === 'csv') return downloadInvoiceCsv(`${base}.csv`, printData)
     if (exportFormat === 'excel') return downloadInvoiceExcel(`${base}.xlsx`, printData)
-    return downloadInvoicePdf(`${base}.pdf`, printData)
+    const el = printExportRef.current
+    if (!el) return
+    return downloadPdfFromElement(`${base}.pdf`, el)
   }
 
   const printData = useMemo(() => {
@@ -208,6 +212,24 @@ export function BillingPage() {
           </div>
         </div>
       </div>
+
+      {/* Off-screen render used for PDF download so it matches Print exactly */}
+      {printData && (
+        <div
+          style={{
+            position: 'fixed',
+            left: -10000,
+            top: 0,
+            width: 900,
+            background: 'white',
+            padding: 0,
+          }}
+        >
+          <div ref={printExportRef}>
+            <InvoicePrint data={printData} />
+          </div>
+        </div>
+      )}
 
       {preview && (
         <div className={cardClass}>

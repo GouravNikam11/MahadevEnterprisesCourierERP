@@ -10,6 +10,10 @@ Monorepo for Mahadev Enterprises Courier ERP.
 - `docs/`: architecture, setup, deployment notes
 - `docker/`: local docker-compose and Dockerfiles
 
+## Project details (overview, purpose, menus)
+
+See `docs/PROJECT_DETAILS.md`.
+
 ## Prerequisites
 
 - Node.js LTS

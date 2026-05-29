@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createAccountBooking, listAccountBookings, updateAccountBooking } from '../../services/bookingApi'
 import { lookupAccountParties, lookupCourierCompanies, type LookupItem } from '../../services/lookupApi'
@@ -90,6 +90,8 @@ export function AccountBookingPage() {
     } as any,
   })
 
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
+
   useEffect(() => {
     Promise.all([lookupAccountParties(), lookupCourierCompanies()]).then(([ap, cc]) => {
       setAccountParties(ap)
@@ -121,20 +123,41 @@ export function AccountBookingPage() {
     }
   }, [query])
 
-  const emptyFormValues = {
-    bookingDate: new Date().toISOString().slice(0, 10),
-    accountPartyId: '',
-    customerName: '',
-    customerPhone: '',
-    courierCompanyId: '',
-    courierNumber: '',
-    parcelType: '',
-    destination: '',
-    weight: '',
-    weightUnit: 'KG',
-    charges: '',
-    remarks: '',
-  } as const
+  const emptyFormValues = useMemo(
+    () =>
+      ({
+        bookingDate: todayStr,
+        accountPartyId: '',
+        customerName: '',
+        customerPhone: '',
+        courierCompanyId: '',
+        courierNumber: '',
+        parcelType: '',
+        destination: '',
+        weight: '',
+        weightUnit: 'KG',
+        charges: '',
+        remarks: '',
+      }) as const,
+    [todayStr],
+  )
+
+  const resetForNextEntry = (sticky: { bookingDate: string; accountPartyId: string; courierCompanyId: string }) => {
+    form.reset({
+      bookingDate: sticky.bookingDate,
+      accountPartyId: sticky.accountPartyId,
+      courierCompanyId: sticky.courierCompanyId,
+      customerName: '',
+      customerPhone: '',
+      courierNumber: '',
+      parcelType: '',
+      destination: '',
+      weight: '',
+      weightUnit: 'KG',
+      charges: '',
+      remarks: '',
+    } as any)
+  }
 
   const toPayload = (values: FormValues) => ({
     ...values,
@@ -147,12 +170,42 @@ export function AccountBookingPage() {
     remarks: values.remarks || undefined,
   })
 
+  const accountPartyIdWatched = useWatch({ control: form.control, name: 'accountPartyId' })
+  const prevAccountPartyIdRef = useRef<string | undefined>(undefined)
+  useEffect(() => {
+    if (editing) return
+    const prev = prevAccountPartyIdRef.current
+    if (prev === undefined) {
+      prevAccountPartyIdRef.current = accountPartyIdWatched
+      return
+    }
+    if (prev !== accountPartyIdWatched) {
+      prevAccountPartyIdRef.current = accountPartyIdWatched
+      setTrackingLink(null)
+      form.setValue('bookingDate', todayStr, { shouldDirty: true, shouldTouch: true })
+      form.setValue('courierCompanyId', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('courierNumber', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('customerName', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('customerPhone', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('parcelType', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('destination', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('weight', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('weightUnit', 'KG', { shouldDirty: true, shouldTouch: true })
+      form.setValue('charges', '', { shouldDirty: true, shouldTouch: true })
+      form.setValue('remarks', '', { shouldDirty: true, shouldTouch: true })
+    }
+  }, [accountPartyIdWatched, editing, form, todayStr])
+
   const onCreate = async (values: FormValues) => {
     setError(null)
     setTrackingLink(null)
     const res = await createAccountBooking(toPayload(values))
     setTrackingLink(res.trackingLink)
-    form.reset(emptyFormValues as any)
+    resetForNextEntry({
+      bookingDate: values.bookingDate,
+      accountPartyId: values.accountPartyId,
+      courierCompanyId: values.courierCompanyId,
+    })
     const accountParty = accountParties.find((p) => p.id === values.accountPartyId)
     const courierCompany = courierCompanies.find((c) => c.id === values.courierCompanyId)
     setData((prev) =>
@@ -178,7 +231,11 @@ export function AccountBookingPage() {
     try {
       const updated = await updateAccountBooking(editing.id, toPayload(values))
       setEditing(null)
-      form.reset(emptyFormValues as any)
+      resetForNextEntry({
+        bookingDate: values.bookingDate,
+        accountPartyId: values.accountPartyId,
+        courierCompanyId: values.courierCompanyId,
+      })
       setData((prev) => (prev ? { ...prev, items: prev.items.map((x) => (x.id === updated.id ? updated : x)) } : prev))
     } catch (e) {
       setError((e as any)?.response?.data?.message ?? (e as any)?.message ?? 'Failed to update booking')
@@ -207,7 +264,12 @@ export function AccountBookingPage() {
 
   const cancelEdit = () => {
     setEditing(null)
-    form.reset(emptyFormValues as any)
+    const current = form.getValues()
+    resetForNextEntry({
+      bookingDate: (current.bookingDate as string) || todayStr,
+      accountPartyId: (current.accountPartyId as string) || '',
+      courierCompanyId: (current.courierCompanyId as string) || '',
+    })
   }
 
   const exportRows = useMemo(() => {
